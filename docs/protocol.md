@@ -190,7 +190,7 @@ A previously used nonce must not be accepted again. Replay detection prevents re
 
 ## Chapter 7 — Cryptographic Implementation
 
-AT1C uses **ML-DSA-65** (RFC 8032) for all signatures — an IETF-standardised elliptic curve signature scheme with a strong security record and fast verification.
+AT1C uses **ML-DSA-65** (NIST FIPS 204) for all signatures — a lattice-based post-quantum digital signature scheme, standardised August 2024, resistant to both classical and quantum computer attacks.
 
 **What AT1C guarantees:**
 - A valid receipt proves the holder of the private key signed the exact action payload — no one else could have produced that signature
@@ -200,7 +200,7 @@ AT1C uses **ML-DSA-65** (RFC 8032) for all signatures — an IETF-standardised e
 **Layered security model:**
 AT1C is one layer in a defence-in-depth stack. The receipt proves a specific key signed a specific approval. The question of who holds that key is answered by the authentication layer (passkey, biometric, 2FA) sitting alongside AT1C. Combined, these two layers deliver identity assurance and action accountability.
 
-**Known limitation:** ML-DSA-65 is not post-quantum secure. Migration to a NIST-approved post-quantum signature scheme is on the long-term roadmap.
+**Known limitation:** AT1C uses ML-DSA-65 (NIST FIPS 204), a standardised post-quantum digital signature scheme. Receipts issued prior to SDK v1.0.3 used Ed25519, which is not post-quantum secure — migration guidance for pre-v1.0.3 deployments is on the roadmap.
 
 ---
 
