@@ -1,5 +1,5 @@
 const express = require('express')
-const { verifyReceipt } = require('./packages/sdk/dist/index.js')
+const { verifyReceipt } = require('@at1c/sdk')
 const { paymentMiddleware, x402ResourceServer } = require('@x402-avm/express')
 const { HTTPFacilitatorClient } = require('@x402-avm/core/server')
 const { registerExactAvmScheme } = require('@x402-avm/avm/exact/server')
@@ -7,8 +7,10 @@ const { ALGORAND_MAINNET_CAIP2 } = require('@x402-avm/avm')
 
 const app = express()
 app.use(express.json())
-
-const PAY_TO = 'IVCQ6VSUINTBEATREWRWSCWV26THLJ44PRGIA7X4V626LQA4BH0E3ZDEQ4'
+app.get('/', (req, res) => {
+  res.sendFile(__dirname + '/index.html');
+});
+const PAY_TO = 'NBYSHLSNR7PRQ5NMWCSP3LRLFHJPAUYNXZLSB2YARWWMIPKBOM3WCID5NI'
 
 const facilitatorClient = new HTTPFacilitatorClient({
   url: 'https://facilitator.goplausible.xyz'
