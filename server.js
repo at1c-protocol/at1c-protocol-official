@@ -10,7 +10,7 @@ app.use(express.json())
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/index.html');
 });
-const PAY_TO = 'NBYSHLSNR7PRQ5NMWCSP3LRLFHJPAUYNXZLSB2YARWWMIPKBOM3WCID5NI'
+const PAY_TO = 'IUCQ6VSUINTBEATREWRWSCWV26THLJ44PRGIA7X4V626LQA4BHOE3ZDEQ4'
 
 const facilitatorClient = new HTTPFacilitatorClient({
   url: 'https://facilitator.goplausible.xyz'
