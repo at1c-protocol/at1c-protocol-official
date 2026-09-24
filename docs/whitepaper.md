@@ -135,13 +135,13 @@ This maps directly onto the EU AI Act's risk classification framework.
 - A valid receipt proves the holder of the private key signed the exact action payload — no one else could have produced that signature
 - Nonces are unique and single-use replay attacks are prevented by construction
 - Agent certificates are signed by the AT1C registry root key agent identity is independently verifiable
-- ML-DSA-65 (RFC 8032) IETF-standardised elliptic curve signature scheme, strong security record
+- ML-DSA-65 (FIPS 204) NIST-standardised post-quantum lattice signature scheme, strong security record
 
 **The layered security model:**
 AT1C is one layer in a defence-in-depth stack. The receipt proves a specific key signed a specific approval. The question of who holds that key is answered by your authentication layer (passkey, biometric, 2FA). Combined, these two layers deliver identity assurance and action accountability the same separation of concerns that governs every major payment network and PKI system in production today.
 
 **Known limitations:**
-- ML-DSA-65 is not post-quantum secure — migration to a NIST-approved post-quantum scheme is on the long-term roadmap
+- ML-DSA-65 signature sizes are larger than classical alternatives (~3.3 KB vs 64 bytes for Ed25519) — an accepted bandwidth and storage trade-off for post-quantum security
 - Receipt storage is currently local — hosted long-term storage is a planned paid tier
 - Tiered autonomy is planned — current protocol supports scoped permissions per agent
 - A valid receipt proves a specific action scope was approved at a specific time — it does not prove the agent acted within that scope, what the agent observed before acting, or what it actually executed post-approval. Post-execution outcome verification is a planned future layer
