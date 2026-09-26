@@ -17,7 +17,7 @@ const facilitatorClient = new HTTPFacilitatorClient({
 })
 
 const resourceServer = new x402ResourceServer(facilitatorClient)
-registerExactAvmScheme(resourceServer)
+registerExactAvmScheme(resourceServer, { network: ALGORAND_MAINNET_CAIP2 })
 
 const routes = {
   'POST /v1/verify': {
