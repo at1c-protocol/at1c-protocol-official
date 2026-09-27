@@ -4,7 +4,7 @@ const { paymentMiddleware, x402ResourceServer } = require('@x402-avm/express')
 const { HTTPFacilitatorClient } = require('@x402-avm/core/server')
 const { registerExactAvmScheme } = require('@x402-avm/avm/exact/server')
 const { ALGORAND_MAINNET_CAIP2 } = require('@x402-avm/avm')
-
+const { declareDiscoveryExtension, bazaarResourceServerExtension } = require('@x402-avm/extensions/bazaar')
 const app = express()
 app.set('trust proxy', true)
 app.use(express.json())
@@ -19,7 +19,7 @@ const facilitatorClient = new HTTPFacilitatorClient({
 
 const resourceServer = new x402ResourceServer(facilitatorClient)
 registerExactAvmScheme(resourceServer, { network: ALGORAND_MAINNET_CAIP2 })
-
+resourceServer.registerExtension(bazaarResourceServerExtension)
 const routes = {
   'POST /v1/verify': {
     accepts: {
@@ -33,6 +33,21 @@ const routes = {
     description: 'AT1C receipt verification — cryptographic proof that a human approved this AI agent action',
     extra: { tag: 'x402-global-challenge' },
     mimeType: 'application/json',
+    extensions: {
+      ...declareDiscoveryExtension({
+        input: { receiptId: 'example-receipt-id' },
+        inputSchema: {
+          properties: {
+            receiptId: { type: 'string' }
+          },
+          required: ['receiptId']
+        },
+        bodyType: 'json',
+        output: {
+          example: { valid: true }
+        },
+      }),
+    },
   }
 }
 
