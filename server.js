@@ -6,6 +6,7 @@ const { registerExactAvmScheme } = require('@x402-avm/avm/exact/server')
 const { ALGORAND_MAINNET_CAIP2 } = require('@x402-avm/avm')
 
 const app = express()
+app.set('trust proxy', true)
 app.use(express.json())
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/index.html');
