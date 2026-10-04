@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 """
 
-NPM_TOKEN = "REMOVED_SEE_ENV_VAR"
 
 AT1C Compliance Report HTML Generator
 Called by index.ts via: python3 generate-compliance-html.py <output_path> <json_data>
@@ -253,60 +252,3 @@ if __name__ == "__main__":
         print("Usage: python3 generate-compliance-html.py <output_path> <json_data>")
         sys.exit(1)
     generate(sys.argv[1], json.loads(sys.argv[2]))
-    
-    
-    
-     Hey alwayshuman!
-
-We're reaching out to let you know that, as announced last year, we have officially begun requiring users who contribute code on GitHub.com to have two-factor authentication (2FA) enabled.
-
-Your account meets this criteria, and you will need to enroll in 2FA within 45 days, by July 30th, 2026 at 00:00 (UTC). After this date, your access to GitHub.com will be limited until you enroll in 2FA. Enrolling is easy, and we support several options, starting with TOTP apps and text messages (SMS) and then adding on passkeys and the GitHub Mobile app.
-
-Click here to enroll in 2FA.
-
-Making the software supply chain more secure is a team effort, and we can't do it without you. Your enrollment in 2FA is an impactful step in keeping the world's software secure. If you want to learn more about this change, please take a look at our documentation about the program.
-
-To see this and other security events for your account, visit your account security audit log.
-
-If you run into problems, please contact support by visiting the GitHub support page.
-
-Thanks,
-The GitHub Team 
-
-
- 302a300506032b6570032100ffee0a3f54eb32e5dec9120c23b449371aa5e74175c8bb00763ce9583cd23cd7 
- 
- 
- 
- “/home/titanic1/registry.at1c.com”.
- 
- New Document Root Update the directory where you want the files for this domain to exist.
-/
-Remove the Domain
-
-Warning: If you remove the “registry.at1c.com” domain, it will permanently delete the domain from your account. You cannot undo this action. This will not remove “registry.at1c.com”’s document root (/home/titanic1/registry.at1c.com).
-Domain Information
-
-    Domain: registry.at1c.com
-    Redirects To: Not Redirected
-    Document Root: /registry.at1c.com
-
-node -e "
-const fs = require('fs');
-const keys = JSON.parse(fs.readFileSync('/home/mora/at1c-protocol-official/.at1c_registry_key.json'));
-console.log('PUBLIC:', keys.publicKey);
-console.log('PRIVATE:', keys.privateKey);
-"
-PUBLIC: -----BEGIN PUBLIC KEY-----
-MCowBQYDK2VwAyEAu237TnDouxCDfx3Rrqkoc+nY40n+1ca6YZfWE1GDZ/M=
------END PUBLIC KEY-----
-
-PRIVATE: -----BEGIN PRIVATE KEY-----
-MC4CAQAwBQYDK2VwBCIEICuk/cpjtQLf0CAqSD1wieMMB9XcRukkwHIgx3NTNdrk
------END PRIVATE KEY-----
-
-3. Tier caller-supplied with no validation — STILL OPEN, still CLI-only risk.
-
-register-agent.js still accepts --tier from whoever runs the command locally. Since registration is CLI-only and only you run it locally, this is low risk right now. But it's the one item that needs attention before you ever open registration to other users. Flag it in the README Known Limitations section so it doesn't get forgotten.
-Short version: two of three resolved by what we built. One still open but not urgent.
-Want to add the tier validation note to the README now while it's fresh, or move on to the next build step?
