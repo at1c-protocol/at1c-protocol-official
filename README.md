@@ -73,14 +73,10 @@ The field is converging on a shared framing: treat autonomous agents as instrume
 The EU AI Act begins enforcement in August
 ## Known Limitations & Roadmap
 
-- **Agent key custody** — ✅ done (v1.1) non-custodial by design. Agents generate their own keypairs locally, the registry only ever receives and signs over the public key.
-
-- **Live registry** — ✅ done (v1.2) — authenticated agent verification live at `registry.at1c.com` over HTTPS. Registry private key held in environment variables only, never on the filesystem.
-
-- **Open web registration** — ✅ done (v1.3) any user can register a personal or entity owned agent via `at1c.com/users/register-agent.php`. No CLI required for registration.
-
-- **Browser-side keypair generation** — ✅ done (v1.4) keypair generated in the browser. Private key downloads automatically, never touches the server. Permissions selected via checkboxes. No terminal required — accessible to non-technical users.
-
-- **Quantum resistance** — ✅ done (v1.0.3) AT1C uses ML-DSA-65 (FIPS 203), a NIST-approved post-quantum digital signature scheme. Ed25519 has been retired. SDK v1.0.3 — 12/12 tests passing — published to npm.
+* Agent key custody: ✅ done (v1.1). Agents generate their own keypairs locally; the registry only ever receives and signs over the public key.
+* Verify endpoint: ✅ live (v1.2) at registry.at1c.com over HTTPS, free to use. It checks a receipt's ML-DSA-65 signature, expiry and nonce. It does not yet check that the signing key belongs to a registered agent. Agent certificates are issued by a command-line script, and the registry signing key is kept off the server and out of this repository.
+* Open web registration: 🔧 in progress. The registration page is built (userspice-integration), but the live registry has no registration route yet. Registration is currently by command line only.
+* Browser-side keypair generation: 🔧 built into the registration page; it will be usable once the registration route is live.
+* Quantum resistance: ✅ the SDK (v1.0.3) signs and verifies receipts with ML-DSA-65 (NIST FIPS 204). Registry certificates are currently signed with Ed25519, which is not post-quantum; migration is planned.
 
 - **End-user passkey onboarding** (planned
