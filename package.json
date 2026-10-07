@@ -1,6 +1,7 @@
 {
   "name": "@at1c/sdk",
   "version": "1.0.2",
+  "private": true,
   "description": "**AT1C Protocol**",
   "main": "index.js",
   "directories": {
