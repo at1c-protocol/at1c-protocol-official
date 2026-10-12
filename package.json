@@ -41,6 +41,7 @@
     "@x402-avm/core": "^2.6.1",
     "@x402-avm/express": "^2.6.1",
     "algosdk": "^3.6.0",
+    "canonicalize": "^5.1.0",
     "express": "^5.2.1"
   }
 }

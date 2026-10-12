@@ -83,6 +83,7 @@ export function canonicalise(payload: ReceiptPayload): Uint8Array {
   }
 }
 
+/** @deprecated INSECURE: trusts the public key inside the receipt, so anyone can forge a valid receipt. Use verifyReceiptV1 (spec/receipt.md). */
 export function verifyReceipt(receipt: SignedReceipt): VerifyResult {
   if (receipt.algorithm !== 'ML-DSA-65') {
     return { valid: false, reason: 'unsupported_algorithm' }

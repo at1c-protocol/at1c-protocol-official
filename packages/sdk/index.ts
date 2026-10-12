@@ -56,3 +56,12 @@ export type {
 } from './src/crypto'
 
 export type { StoredKeyPair } from './src/keys'
+
+export { verifyReceiptV1 } from './src/verify'
+export type {
+  VerifyCode,
+  KeyRecord,
+  ExpectedAction,
+  NonceStore,
+  VerifyContext,
+} from './src/verify'
