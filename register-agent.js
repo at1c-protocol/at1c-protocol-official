@@ -66,7 +66,7 @@ function getRegistryKeys() {
     createdAt:  Date.now()
   }
   fs.writeFileSync(REGISTRY_KEY_FILE, JSON.stringify(keys, null, 2))
-  console.log('🔑 AT1C Registry root key generated — ML-DSA-65 (FIPS 203) (first run)')
+  console.log('🔑 AT1C Registry root key generated — ML-DSA-65 (FIPS 204) (first run)')
   return keys
 }
 
@@ -169,7 +169,7 @@ function registerAgent() {
   console.log(`  Tier        : ${tier}`)
   console.log(`  Permissions : ${permissions.join(', ')}`)
   console.log(`  Cert ID     : ${certId}`)
-  console.log(`  Algorithm   : ML-DSA-65 (FIPS 203)`)
+  console.log(`  Algorithm   : ML-DSA-65 (FIPS 204)`)
   console.log(`  Issued      : ${certPayload.issuedAt}`)
   console.log(`  Expires     : ${certPayload.expiresAt}`)
   console.log(`  Signature   : ${certSignature.slice(0, 40)}...`)
@@ -227,7 +227,7 @@ function verifyAgent(agentId) {
   console.log(`  Owner       : ${agent.ownerUserId}`)
   console.log(`  Permissions : ${(agent.permissions
 || []).join(', ')}`)
-  console.log(`  Algorithm   : ML-DSA-65 (FIPS 203)`)
+  console.log(`  Algorithm   : ML-DSA-65 (FIPS 204)`)
   console.log(`  Cert valid  : ${sigValid ? '✅ YES' : '❌ NO — tampered'}`)
   console.log(`  Expired     : ${expired  ? '❌ YES' : '✅ NO'}`)
   console.log(`  Status      : ${sigValid && !expired ? '✅ TRUSTED' : '❌ NOT TRUSTED'}`)

@@ -6,9 +6,9 @@
 
 ---
 
-## 🔐 Post-Quantum Ready — ML-DSA-65 (FIPS 203)
+## 🔐 Post-Quantum Ready — ML-DSA-65 (FIPS 204)
 
-AT1C uses **ML-DSA-65**, a NIST-approved post-quantum digital signature scheme (FIPS 203). Ed25519 has been retired. Every receipt, certificate, and verification is now quantum-resistant.
+AT1C uses **ML-DSA-65**, a NIST-approved post-quantum digital signature scheme (FIPS 204). Ed25519 has been retired. Every receipt, certificate, and verification is now quantum-resistant.
 
 **SDK v1.0.3 — 12/12 tests passing — published to npm.**
 
@@ -53,7 +53,7 @@ curl https://registry.at1c.com/health
 
 1. **Request** — an AI agent asks permission to perform a specific action
 2. **Approve** — a human explicitly grants or denies it
-3. **Proof** — an ML-DSA-65 (FIPS 203) post-quantum signed receipt is generated, binding the user, action, timestamp, and nonce
+3. **Proof** — an ML-DSA-65 (FIPS 204) post-quantum signed receipt is generated, binding the user, action, timestamp, and nonce
 4. **Verify** — any system independently verifies the receipt before execution — no trust required
 
 Every receipt is single-use (nonce-based replay protection). Approval is scoped to the exact action requested — not transferable to any other action.## AT1C vs. The Others
