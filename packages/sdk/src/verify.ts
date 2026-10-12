@@ -1,7 +1,7 @@
 // AT1C receipt verifier, format version 1. Implements spec/receipt.md section 5 and spec/keys.md.
-// UNTESTED until run against spec/test-vectors/receipt-v1.json (see tests/vectors.test.ts).
+// Tested against spec/test-vectors/receipt-v1.json (tests/vectors.test.ts). No dependency beyond @noble/post-quantum.
 import { ml_dsa65 } from '@noble/post-quantum/ml-dsa.js'
-import canonicalize from 'canonicalize'
+import { createHash } from 'crypto'
 
 export type VerifyCode =
   | 'OK' | 'SCHEMA' | 'ALG_NOT_ALLOWED' | 'UNKNOWN_AUTHORITY' | 'KEY_NOT_VALID'
@@ -44,6 +44,32 @@ const RE_B64U = /^[A-Za-z0-9_-]+$/
 const RE_TS = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$/
 const CLASSES = ['compensable', 'retriable', 'irreversible']
 
+
+/** RFC 8785 (JCS) for the value types receipts may contain: strings, safe integers, booleans, null, arrays, objects.
+ *  Floats are rejected on purpose (spec/receipt.md section 2). Keys sort by UTF-16 code unit, as RFC 8785 requires. */
+export function jcs(v: unknown): string {
+  if (v === null) return 'null'
+  switch (typeof v) {
+    case 'string': return JSON.stringify(v)
+    case 'boolean': return v ? 'true' : 'false'
+    case 'number':
+      if (!Number.isSafeInteger(v)) throw new Error('floats and unsafe integers are not allowed')
+      return String(v)
+    case 'object': {
+      if (Array.isArray(v)) return '[' + v.map(jcs).join(',') + ']'
+      const o = v as Record<string, unknown>
+      const keys = Object.keys(o).filter((k) => o[k] !== undefined).sort()
+      return '{' + keys.map((k) => JSON.stringify(k) + ':' + jcs(o[k])).join(',') + '}'
+    }
+    default: throw new Error('unsupported value type')
+  }
+}
+
+/** The payload_hash a gate must compute from the real payload it is about to execute. */
+export function payloadHashOf(payload: unknown): string {
+  return 'sha256:' + createHash('sha256').update(jcs(payload), 'utf8').digest('hex')
+}
+
 const b64u = (s: string): Uint8Array => new Uint8Array(Buffer.from(s, 'base64url'))
 const ts = (s: string): number => Date.parse(s)
 const isStr = (x: unknown): x is string => typeof x === 'string' && x.length > 0
@@ -83,7 +109,12 @@ export function verifyReceiptV1(receipt: any, ctx: VerifyContext): { ok: boolean
 
   const unsigned = structuredClone(receipt)
   delete unsigned.approval.signature
-  const bytes = new TextEncoder().encode(canonicalize(unsigned) as string)
+  let bytes: Uint8Array
+  try {
+    bytes = new TextEncoder().encode(jcs(unsigned))
+  } catch {
+    return fail('SCHEMA') // e.g. a float in an extra field
+  }
   let sigOk = false
   try {
     sigOk = ml_dsa65.verify(b64u(ap.signature), bytes, b64u(rec.public_key))
