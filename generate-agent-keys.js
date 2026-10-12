@@ -60,4 +60,3 @@ console.log('  Next step — register this public key:')
 console.log(`  node register-agent.js --pubkey ${publicKeyHex} \\`)
 console.log(`    --name "My Agent" --owner "user_abc" --permissions "send_payment"`)
 console.log(line + '\n')
-refactor: replace Ed25519 with ML-DSA-65 via @at1c/sdk in generate-agent-keys
