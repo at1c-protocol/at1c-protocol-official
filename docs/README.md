@@ -27,7 +27,7 @@ Start here. Most important documents listed first.
 |----------|-------------|
 | [architecture.md](architecture.md) | System architecture overview |
 | [receipts.md](receipts.md) | Receipt format and storage |
-| [signatures.md](signatures.md) | ML-DSA-65 (FIPS 203) post-quantum signing implementation |
+| [signatures.md](signatures.md) | ML-DSA-65 (FIPS 204) post-quantum signing implementation |
 | [verification.md](verification.md) | Verification rules and replay protection |
 | [scopes.md](scopes.md) | Permission scopes and context binding |
 | [agent-execution.md](agent-execution.md) | Agent execution lifecycle |
