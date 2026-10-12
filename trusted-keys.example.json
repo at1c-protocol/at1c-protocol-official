@@ -1,0 +1,12 @@
+{
+  "allowed_algs": ["ML-DSA-65"],
+  "keys": {
+    "did:web:example.com#user-1": {
+      "alg": "ML-DSA-65",
+      "public_key": "<base64url public key from tools/new-authority-key.mjs>",
+      "valid_from": "2026-10-12T00:00:00Z",
+      "valid_until": "2027-10-12T00:00:00Z",
+      "revoked": false
+    }
+  }
+}

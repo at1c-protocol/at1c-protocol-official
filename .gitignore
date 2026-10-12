@@ -22,3 +22,4 @@ compliance-report.pdf
 my-agent-keys.json
 *-agent-keys.json
 my-keys.json
+trusted-keys.json
