@@ -17,7 +17,7 @@ Last updated: 12 Oct 2026. One-line focus: **AT1C is a human-signed, single-use,
 - `server.js` rewritten to use `verifyReceiptV1` and a trusted-keys file (see Deploy below).
 
 ## Known problems, in priority order
-1. **Live `/v1/verify` on registry.at1c.com may still run the old insecure code.** Deploy the new `server.js` (below), or take the endpoint offline.
+1. DONE 12 Oct 2026: live `/v1/verify` on registry.at1c.com runs the new server.js (trusted keys, receipt v1). Old files kept there as `server.OLD-insecure.js` and `package.OLD.json`; delete them once happy.
 2. Registry signing key is Ed25519 (`REGISTRY_KEYS.md`, local `.at1c_registry_key.json`), while `register-agent.js` uses ML-DSA-65. Decision pending: rotate to ML-DSA-65 (recommended; `agents.json` is empty, and the website does not use this key). Record the Ed25519 key as retired.
 3. `packages/sdk/src/client.ts` (`AT1C.enforce`) still uses the old flat receipt, generates a new key in memory each start, and verifies with the insecure verifier. Needs a rewrite onto receipt v1.
 4. Docs still on old schemas: `docs/protocol.md` ch.5, `docs/receipts.md` (retire), `docs/verification.md`, `docs/scopes.md`, `docs/signatures.md` (stub), whitepaper. Regenerate from `spec/`, one term list at a time, never a blanket replace.
@@ -42,3 +42,10 @@ Last updated: 12 Oct 2026. One-line focus: **AT1C is a human-signed, single-use,
 - One change at a time; branch, test, pull request, merge.
 - Run the vectors before and after any change touching receipts or verification.
 - Mark claims as confirmed or inferred. Say what is a standard pattern and what is an AT1C judgment call.
+
+## Hosting notes
+- Live verify app: cPanel > Setup Node.js App; root /home/titanic1/registry.at1c.com, startup file server.js, Node 20.20.2, runs under Passenger.
+- Passenger loads server.js itself, so server.js must call listen when PhusionPassenger is defined (it does now). Without this the app hangs.
+- Live folder holds: server.js, trusted-keys.json, package.json, packages/sdk/dist/src/verify.js, agents.json, index.html.
+- Approver key authority did:web:at1c.com#mora-1; secret seed in ~/at1c-secrets (back it up, never commit). Valid until 12 Oct 2027.
+- Open: packages/sdk/dist/ is tracked in Git but is build output. Decide whether to untrack and gitignore it.

@@ -71,7 +71,7 @@ function createApp({ verify, payloadHashOf, trusted, now = () => new Date() }) {
 
 module.exports = { createApp, loadTrusted }
 
-if (require.main === module) {
+if (require.main === module || typeof PhusionPassenger !== 'undefined') {
   // Build first: cd packages/sdk && npx tsc -p tsconfig.sdk.json
   const sdk = require(process.env.AT1C_SDK_VERIFY || './packages/sdk/dist/src/verify')
   const trustedFile = process.env.AT1C_TRUSTED_KEYS || path.join(__dirname, 'trusted-keys.json')
