@@ -79,7 +79,7 @@ Inferred, not tested: that `@noble/post-quantum` `sign(msg, sk)` with default (e
 
 ## 4. Trust model for the signing key (v1)
 
-The verifier holds a **pinned map** `authority → public key`. A receipt from an authority not in the map is rejected. No registry, DID resolution or chain is needed in v1. [AT1C choice]
+The verifier holds a **pinned map** `authority → key record` (`alg`, `public_key`, `valid_from`, `valid_until`, `revoked`), defined in `keys.md`. A receipt from an authority not in the map, or whose key is revoked or outside its window, is rejected. No registry, DID resolution or chain is needed in v1. [AT1C choice]
 
 Gap (unresolved): key rotation, revocation of a compromised user key, and how a verifier first learns a key. `did:web` resolution is a candidate, but it is not specified here and is not in v1.
 
@@ -90,12 +90,13 @@ The first failing check returns its code and the gate MUST NOT execute.
 1. `SCHEMA`: all required fields present and well-formed; `version == "1"`.
 2. `ALG_NOT_ALLOWED`: `approval.alg` is in the verifier's allowlist (never taken from the receipt alone).
 3. `UNKNOWN_AUTHORITY`: authority has a pinned key.
-4. `BAD_SIGNATURE`: signature verifies over the canonical bytes.
-5. `DENIED`: `decision != approved` (a valid denial is logged, never executed).
-6. `BAD_TTL`, `NOT_YET_VALID`, `EXPIRED`: `issued_at ≤ now < expires_at` and lifetime ≤ 86400 s.
-7. `CONTEXT_MISMATCH`: `actor.agent_id`, `action.type`, `action.resource` and `action.payload_hash` equal what the gate is about to execute. The gate computes the payload hash itself from the real payload.
-8. `REVOKED`: `receipt_id` is not revoked.
-9. `REPLAY`: atomically check-and-record `nonce`. **This runs last**, so a failed attempt never burns a valid receipt.
+4. `KEY_NOT_VALID`: key is not revoked, its `alg` matches, and the verifier's own clock is within `valid_from ≤ now < valid_until` (see `keys.md`; never use `issued_at` for this).
+5. `BAD_SIGNATURE`: signature verifies over the canonical bytes.
+6. `DENIED`: `decision != approved` (a valid denial is logged, never executed).
+7. `BAD_TTL`, `NOT_YET_VALID`, `EXPIRED`: `issued_at ≤ now < expires_at` and lifetime ≤ 86400 s.
+8. `CONTEXT_MISMATCH`: `actor.agent_id`, `action.type`, `action.resource` and `action.payload_hash` equal what the gate is about to execute. The gate computes the payload hash itself from the real payload.
+9. `REVOKED`: `receipt_id` is not revoked.
+10. `REPLAY`: atomically check-and-record `nonce`. **This runs last**, so a failed attempt never burns a valid receipt.
 
 Fail closed: if the nonce store or revocation list is unreachable, reject.
 
@@ -103,11 +104,11 @@ Fail closed: if the nonce store or revocation list is unreachable, reject.
 
 | Rule | Enforced by |
 |---|---|
-| 1. No Implicit Authority | Steps 3–5: only a pinned human key's `approved` signature grants anything. Agent claims grant nothing. |
-| 2. Context Binding | Step 7 plus signed `payload_hash`. |
-| 3. Proof Integrity | Steps 1, 2, 4: JCS plus signature over everything but the signature; `alg` is signed and allowlisted. |
+| 1. No Implicit Authority | Steps 3–6: only a pinned human key's `approved` signature grants anything. Agent claims grant nothing. |
+| 2. Context Binding | Step 8 plus signed `payload_hash`. |
+| 3. Proof Integrity | Steps 1, 2, 5: JCS plus signature over everything but the signature; `alg` is signed and allowlisted. |
 | 4. Verification Before Execution | The gate runs §5 before the side effect. Nothing in the receipt can bypass it. |
-| 5. Replay Protection | Step 9 (single-use nonce), step 6 (short expiry), step 8 (revocation). |
+| 5. Replay Protection | Step 10 (single-use nonce), step 7 (short expiry), step 9 (revocation). |
 
 ## 7. Known gaps (stated, not hidden)
 
@@ -120,4 +121,4 @@ Fail closed: if the nonce store or revocation list is unreachable, reject.
 
 ## 8. Test vectors
 
-`spec/test-vectors/receipt-v1.json` holds 19 vectors (2 accepts, 1 denial, 16 negatives). Each lists the receipt, `now`, the gate's expected action, pre-seen nonces and revoked ids, and the expected result code. The key is a deterministic throwaway; **it must never be used for anything real**. Any implementation is conformant only if it reproduces every `expect`. Reference verifier: `tools/at1c_ref.py`; runner: `tools/run_vectors.py`.
+`spec/test-vectors/receipt-v1.json` holds 22 vectors (2 accepts, 1 denial, 19 negatives). Each lists the receipt, `now`, the gate's expected action, pre-seen nonces and revoked ids, and the expected result code. The key is a deterministic throwaway; **it must never be used for anything real**. Any implementation is conformant only if it reproduces every `expect`. Reference verifier: `tools/at1c_ref.py`; runner: `tools/run_vectors.py`.
