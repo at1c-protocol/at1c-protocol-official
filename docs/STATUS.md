@@ -42,3 +42,10 @@ Last updated: 12 Oct 2026. One-line focus: **AT1C is a human-signed, single-use,
 - One change at a time; branch, test, pull request, merge.
 - Run the vectors before and after any change touching receipts or verification.
 - Mark claims as confirmed or inferred. Say what is a standard pattern and what is an AT1C judgment call.
+
+## Hosting notes
+- Live verify app: cPanel > Setup Node.js App; root /home/titanic1/registry.at1c.com, startup file server.js, Node 20.20.2, runs under Passenger.
+- Passenger loads server.js itself, so server.js must call listen when PhusionPassenger is defined (it does now). Without this the app hangs.
+- Live folder holds: server.js, trusted-keys.json, package.json, packages/sdk/dist/src/verify.js, agents.json, index.html.
+- Approver key authority did:web:at1c.com#mora-1; secret seed in ~/at1c-secrets (back it up, never commit). Valid until 12 Oct 2027.
+- Open: packages/sdk/dist/ is tracked in Git but is build output. Decide whether to untrack and gitignore it.
