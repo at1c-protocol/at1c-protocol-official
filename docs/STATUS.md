@@ -6,6 +6,7 @@ Last updated: 13 Oct 2026. One-line focus: **AT1C is a human-signed, single-use,
 - `spec/receipt.md` is the canonical receipt (format version `"1"`). If any other doc disagrees, it loses.
 - `spec/keys.md` is the key trust model (verifier-pinned keys, validity window judged by the verifier's clock).
 - `spec/agent-certificate.md` is the registry-signed agent certificate (format `"1"`). Permissions are a ceiling, never a grant.
+- `spec/threat-model.md` is the draft threat model (adversaries, 20 threats, status of each, prioritised next mitigations).
 - `spec/test-vectors/receipt-v1.json` (22) and `agent-certificate-v1.json` (21) are conformance vectors. Any verifier must reproduce every `expect`.
 - Reference verifiers: `packages/sdk/src/verify.ts` and `agentCert.ts` (SDK, tests in `packages/sdk/tests/`). The Python references (`tools/at1c_ref.py` etc.) are NOT committed yet, see problem 12.
 - Versioning: only the `version` field in a receipt is the protocol version. "v1.4", "v1.6", "v0.1" in old docs are document revisions.
@@ -36,7 +37,7 @@ Last updated: 13 Oct 2026. One-line focus: **AT1C is a human-signed, single-use,
 6. Algorand / x402 should move out of headline docs into an adapters folder (optional chain adapter only).
 7. Legacy code to retire: root `verify.js`, `src/crypto/verifyReceipt.js`, `src/crypto/enforce.js`, `src/crypto/signAgentAction.js` (check what uses them first).
 8. Canonical acronym: SDK header and README now say "The Human Authorisation Layer"; whitepaper uses another expansion. Decide, then align. HRT credit missing from whitepaper references.
-9. Not yet written: threat model (must include the Gate-chokepoint premise), reference gate demo, shared revocation feed, cumulative/budget limits (spec section 7 lists the gaps).
+9. Threat model DRAFT written: `spec/threat-model.md` (20 threats, prioritised mitigations; top item: write the credential-isolation rule into the spec). Not yet written: reference gate demo, shared revocation feed, cumulative/budget limits (spec section 7 lists the gaps).
 10. Secrets tidy-up: encrypted backups of mora-1 and registry-1 (none yet); remove plaintext files that sit beside .gpg copies once the .gpg ones are proven to decrypt; chmod 600 retired-registry-key.json.
 11. Delete the old files in the cPanel app folder: server.OLD-insecure.js and package.OLD.json.
 12. Python reference files never committed: `tools/at1c_ref.py`, `gen_vectors.py`, `run_vectors.py`. `tools/at1c_cert_ref.py` imports `at1c_ref` and cannot run from the repo; `spec/receipt.md` section 8 names them. Add them or fix the references.
