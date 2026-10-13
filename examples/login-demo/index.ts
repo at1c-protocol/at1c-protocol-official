@@ -1,32 +1,36 @@
 import { AT1C } from '../../packages/sdk/src/client'
-import { verifyReceipt } from '../../packages/sdk/src/crypto'
 
+// Setup (once): node tools/new-authority-key.mjs "<your authority>", then put the printed record in trusted-keys.json.
+// Run:          AT1C_AUTHORITY="<your authority>" npx tsx examples/login-demo/index.ts
 async function main() {
-  const at1c = new AT1C()
+  const authority = process.env.AT1C_AUTHORITY
+  if (!authority) {
+    console.error('Set AT1C_AUTHORITY to your approver authority id (see the comment at the top of this file).')
+    process.exit(1)
+  }
+  const at1c = new AT1C({ authority })
 
-  console.log('\n🔐 AT1C Login Demo')
-  console.log('Public Key:', at1c.getPublicKey())
+  console.log('\nAT1C Login Demo')
+  console.log('Approver public key:', at1c.getPublicKey())
 
   const result = await at1c.enforce(
     {
-      userId: 'user_demo',
       agentId: 'login_agent',
       action: 'login',
+      resource: 'https://example.com/login',
+      payload: { user: 'demo' },
     },
-    async () => {
-      console.log('✅ Login action executed')
-      return { loggedIn: true }
+    async (payload) => {
+      console.log('Login executed:', JSON.stringify(payload))
+      return { done: true }
     }
   )
 
-  console.log('\n📋 Result:', result.status)
-
+  console.log('\nResult:', result.status)
   if (result.status === 'approved') {
-    const check = verifyReceipt(result.receipt)
-    console.log('🔐 Receipt valid:', check.valid)
-    if (!check.valid) {
-      console.log('❌ Reason:', check.reason)
-    }
+    console.log('Receipt ID:', result.receipt.receipt_id, '(verified by the Gate before the action ran)')
+  } else {
+    console.log('Reason:', result.reason)
   }
 }
 
