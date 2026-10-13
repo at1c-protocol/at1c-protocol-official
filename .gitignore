@@ -23,3 +23,6 @@ my-agent-keys.json
 *-agent-keys.json
 my-keys.json
 trusted-keys.json
+
+receipts.json
+.at1c/
