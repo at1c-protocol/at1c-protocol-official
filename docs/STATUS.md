@@ -1,6 +1,6 @@
 # AT1C status (read this first in any new chat)
 
-Last updated: 12 Oct 2026. One-line focus: **AT1C is a human-signed, single-use, scope-bound approval receipt that a gate verifies before an action runs. Any chain is optional.**
+Last updated: 13 Oct 2026. One-line focus: **AT1C is a human-signed, single-use, scope-bound approval receipt that a gate verifies before an action runs. Any chain is optional.**
 
 ## Source of truth
 - `spec/receipt.md` is the canonical receipt (format version `"1"`). If any other doc disagrees, it loses.
@@ -18,7 +18,7 @@ Last updated: 12 Oct 2026. One-line focus: **AT1C is a human-signed, single-use,
 
 ## Known problems, in priority order
 1. DONE 12 Oct 2026: live `/v1/verify` on registry.at1c.com runs the new server.js (trusted keys, receipt v1). Old files kept there as `server.OLD-insecure.js` and `package.OLD.json`; delete them once happy.
-2. Registry signing key is Ed25519 (`REGISTRY_KEYS.md`, local `.at1c_registry_key.json`), while `register-agent.js` uses ML-DSA-65. Decision pending: rotate to ML-DSA-65 (recommended; `agents.json` is empty, and the website does not use this key). Record the Ed25519 key as retired.
+2. DONE 13 Oct 2026: registry key rotated to ML-DSA-65 (registry-1); agent certificates v1 done (spec/agent-certificate.md, 21 vectors, register-agent.js rewritten). Ed25519 key recorded as retired in REGISTRY_KEYS.md.
 3. `packages/sdk/src/client.ts` (`AT1C.enforce`) still uses the old flat receipt, generates a new key in memory each start, and verifies with the insecure verifier. Needs a rewrite onto receipt v1.
 4. Docs still on old schemas: `docs/protocol.md` ch.5, `docs/receipts.md` (retire), `docs/verification.md`, `docs/scopes.md`, `docs/signatures.md` (stub), whitepaper. Regenerate from `spec/`, one term list at a time, never a blanket replace.
 5. Licence mismatch: root `package.json` ISC, `packages/sdk/package.json` MIT, homepage says MIT.
@@ -26,6 +26,8 @@ Last updated: 12 Oct 2026. One-line focus: **AT1C is a human-signed, single-use,
 7. Legacy code to retire: root `verify.js`, `src/crypto/verifyReceipt.js`.
 8. Canonical acronym is "The Human Authorisation Layer"; whitepaper and SDK header use another expansion. HRT credit missing from whitepaper references.
 9. Not yet written: threat model, reference gate demo, key rotation feed, cumulative/budget limits (spec section 7 lists the gaps).
+10. Secrets tidy-up: encrypted backups of mora-1 and registry-1 (none yet); remove plaintext files that sit beside .gpg copies once the .gpg ones are proven to decrypt; chmod 600 retired-registry-key.json.
+11. Delete the old files in the cPanel app folder: server.OLD-insecure.js and package.OLD.json.
 
 ## Run the checks
 - Spec vectors, Python: `python3 tools/run_vectors.py spec/test-vectors/receipt-v1.json` (needs `cryptography` >= 48)
