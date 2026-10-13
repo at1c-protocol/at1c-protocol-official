@@ -6,6 +6,7 @@ Last updated: 13 Oct 2026. One-line focus: **AT1C is a human-signed, single-use,
 - `spec/receipt.md` is the canonical receipt (format version `"1"`). If any other doc disagrees, it loses.
 - `spec/keys.md` is the key trust model (verifier-pinned keys, validity window judged by the verifier's clock).
 - `spec/agent-certificate.md` is the registry-signed agent certificate (format `"1"`). Permissions are a ceiling, never a grant.
+- `spec/gate.md` is the gate conformance draft: credential isolation, enforcing vs advisory gates. The SDK client is an ADVISORY gate.
 - `spec/threat-model.md` is the draft threat model (adversaries, 20 threats, status of each, prioritised next mitigations).
 - `spec/test-vectors/receipt-v1.json` (22) and `agent-certificate-v1.json` (21) are conformance vectors. Any verifier must reproduce every `expect`.
 - Reference verifiers: `packages/sdk/src/verify.ts` and `agentCert.ts` (SDK, tests in `packages/sdk/tests/`). The Python references (`tools/at1c_ref.py` etc.) are NOT committed yet, see problem 12.
@@ -26,6 +27,7 @@ Last updated: 13 Oct 2026. One-line focus: **AT1C is a human-signed, single-use,
 - Level 1 `Approver` and `Gate` (`src/approver.ts`, `src/gate.ts`, durable atomic nonce store, fail closed) (13 Oct).
 - `client.ts` rewritten on Approver + Gate. BREAKING: `new AT1C({authority})`; `enforce()` needs `agentId`, `action`, `resource`, `payload`; `checkReceipt` removed; `getPublicKey` returns base64url. A broken `policies.json` is an error; an allow policy does not skip the human (13 Oct).
 - SDK README and `examples/receipts-viewer.ts` rewritten for format 1; unverified EU AI Act compliance claims removed (13 Oct).
+- Threat model draft (`spec/threat-model.md`) and gate spec (`spec/gate.md`, credential isolation) (13 Oct).
 - 112 SDK tests passing.
 
 ## Known problems, in priority order
@@ -37,7 +39,7 @@ Last updated: 13 Oct 2026. One-line focus: **AT1C is a human-signed, single-use,
 6. Algorand / x402 should move out of headline docs into an adapters folder (optional chain adapter only).
 7. Legacy code to retire: root `verify.js`, `src/crypto/verifyReceipt.js`, `src/crypto/enforce.js`, `src/crypto/signAgentAction.js` (check what uses them first).
 8. Canonical acronym: SDK header and README now say "The Human Authorisation Layer"; whitepaper uses another expansion. Decide, then align. HRT credit missing from whitepaper references.
-9. Threat model DRAFT written: `spec/threat-model.md` (20 threats, prioritised mitigations; top item: write the credential-isolation rule into the spec). Not yet written: reference gate demo, shared revocation feed, cumulative/budget limits (spec section 7 lists the gaps).
+9. Threat model DRAFT written: `spec/threat-model.md` (20 threats, prioritised mitigations; credential-isolation rule now written in `spec/gate.md`; next is an enforcing reference gate, item 17). Not yet written: reference gate demo, shared revocation feed, cumulative/budget limits (spec section 7 lists the gaps).
 10. Secrets tidy-up: encrypted backups of mora-1 and registry-1 (none yet); remove plaintext files that sit beside .gpg copies once the .gpg ones are proven to decrypt; chmod 600 retired-registry-key.json.
 11. Delete the old files in the cPanel app folder: server.OLD-insecure.js and package.OLD.json.
 12. Python reference files never committed: `tools/at1c_ref.py`, `gen_vectors.py`, `run_vectors.py`. `tools/at1c_cert_ref.py` imports `at1c_ref` and cannot run from the repo; `spec/receipt.md` section 8 names them. Add them or fix the references.
@@ -45,6 +47,7 @@ Last updated: 13 Oct 2026. One-line focus: **AT1C is a human-signed, single-use,
 14. Decide level 3 algorithm policy after testing a real device: stay ML-DSA-65 only (software key if no hardware), allow hybrid (classical + ML-DSA, both required), or classical-only (not recommended; breaks the post-quantum promise). Not decided.
 15. Unverified claims to confirm: `@at1c/sdk` is published on npm; whether `npm run demo -- --html/--pdf` scripts exist (removed from the README until confirmed); terminal display does not filter lookalike or bidirectional Unicode.
 16. Decide whether to untrack `packages/sdk/dist/` (build output tracked in Git; `tsc` rebuilds modify it). Never `git add` it; add explicit file paths only.
+17. Build an ENFORCING reference gate (a separate process that holds the credential; the agent has no path around it). Until then every gate in this repo is advisory. It only matters together with a level 2 or 3 approver (see `spec/gate.md` section 6).
 
 ## Run the checks
 - Spec vectors, Python: `python3 tools/run_vectors.py spec/test-vectors/receipt-v1.json` (needs `cryptography` >= 48; files not committed yet, see 12)

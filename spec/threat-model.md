@@ -1,6 +1,6 @@
 # AT1C Threat Model — receipt format 1 (DRAFT)
 
-**Status:** draft, not externally reviewed. Companion to `receipt.md`, `keys.md`, `agent-certificate.md`. Where a threat is not covered it says so; nothing here is rounded up to "secure".
+**Status:** draft, not externally reviewed. Companion to `receipt.md`, `keys.md`, `agent-certificate.md`, `gate.md`. Where a threat is not covered it says so; nothing here is rounded up to "secure".
 
 **One-line focus:** AT1C is a human-signed, single-use, scope-bound approval receipt that a gate verifies before an action runs. Any chain is optional.
 
@@ -70,7 +70,7 @@ Status: **COVERED** (mitigated and tested), **PARTIAL**, **OPEN**.
 |---|---|---|---|---|
 | T1 | Forged receipt (no key) | 3 | Signature checked against **verifier-pinned** key, never a key inside the receipt; alg signed and allow-listed [standard]. Vectors `BAD_SIGNATURE`, `UNKNOWN_AUTHORITY`, `ALG_NOT_ALLOWED` [tested]. Old `verifyReceipt` trusted the receipt's own key: now `@deprecated INSECURE`, but still exported, and legacy `verify.js`, `src/crypto/*` remain. | COVERED for format 1; legacy code OPEN |
 | T2 | Hijacked agent self-approves (reads key, edits `trusted-keys.json`, passes its own `prompt`) | 1 | Level 2 or 3 required. Nothing at level 1. | **OPEN at level 1** |
-| T3 | Agent bypasses the gate (raw shell, direct network, holds the target credential) | 4 | None in the receipt. A gate protects only what it alone can do. **Recommended rule [AT1C choice, not yet in spec]:** the gate, not the agent, holds the credential for the side effect, so the agent has no path around it. | **OPEN** |
+| T3 | Agent bypasses the gate (raw shell, direct network, holds the target credential) | 4 | Rule specified in `gate.md`: credential isolation, enforcing vs advisory gates, operator check. The SDK client is an **advisory gate** (runs in the agent's process). No enforcing reference gate is built yet. | PARTIAL (rule written; no enforcing gate) |
 | T4 | Replay of a valid receipt | 5 | Single-use 32-byte nonce, atomic create-if-not-exists store, restart-safe; short expiry (max 24 h); revocation by receipt id; nonce consumed **last** so a failed attempt never burns a valid receipt [AT1C choice]. Tests: replay, restart, race-safe `wx` open [tested]. Residual: file store is single host; at level 1 the agent can delete nonce files and replay. | COVERED (single host, level 2+) |
 | T5 | Context swap: receipt for payload A used for payload B, other resource, type or agent | 2 | Gate recomputes `payload_hash` from the real payload; `fn` receives the payload re-parsed from its canonical form [tested]. Residual: a `fn` that ignores its argument and acts on some other value defeats this; the gate cannot see inside `fn`. | COVERED, with caller discipline |
 | T6 | Tampering with a signed receipt | 3 | JCS (RFC 8785) over everything except the signature [standard]. Tamper vectors [tested]. | COVERED |
@@ -91,7 +91,7 @@ Status: **COVERED** (mitigated and tested), **PARTIAL**, **OPEN**.
 
 ## 6. Prioritised next mitigations (recommendation, in order)
 
-1. **Write the credential-isolation rule into the spec (T3).** Without it, receipts prove approval but nothing forces the agent to ask. Highest value, smallest change.
+1. ~~Write the credential-isolation rule into the spec (T3).~~ **Done:** `gate.md`. Next for T3: build an enforcing reference gate (a separate process that holds the credential).
 2. **Build level 2 (T2).** Separate OS account plus socket; this is the first level that stops a hijacked agent.
 3. **Large-payload policy (T7).** Refuse, or require a structured human summary, instead of approving by hash alone.
 4. **Key backup and compromise handling (T11, T17).** Encrypted backups; a "revoked since" time so old legitimate receipts are not all invalidated.
