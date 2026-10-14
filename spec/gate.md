@@ -59,7 +59,29 @@ Run these **as the agent's OS user**:
 2. Can it reach the target directly, without the gate? (If yes: advisory.)
 3. Can it read the approver key, edit the pinned-key list, or delete nonce files? (If yes: not protected against a hijacked agent, whatever the gate class.)
 
-## 8. What this does not solve
+## 8. Attestation is not a condition of acceptance
+
+**Why.** Device or platform attestation lets a relying party demand an approved operating system, vendor or firmware. Left open, it becomes a dial that tightens over time and hands control of who may approve to platform vendors, shuts out Linux and de-Googled devices, and turns a device model into an identifier. AT1C keeps it out of the core on purpose. [AT1C choice]
+
+**Requirements:**
+
+1. **Acceptance depends only on `receipt.md` section 5 and the verifier's pinned keys.** The receipt format has no attestation field. A gate MUST NOT refuse a receipt because it lacks attestation, or because of how or where its key was generated or stored. A software key file, a hardware token and a phone enclave key are equal.
+2. **Optional evidence only.** A gate MAY accept and record attestation evidence when a key is enrolled (for audit or its own risk assessment). Absence of that evidence MUST NOT, by itself, make a receipt from an already-pinned key fail.
+3. **Conformance.** An implementation whose receipt verification depends on attestation MUST NOT claim conformance to this specification.
+4. **Enrolment is the operator's decision** (`keys.md`). An operator MAY apply its own enrolment policy. If that policy depends on attestation or a particular vendor, it SHOULD be published, and SHOULD NOT be the only path in: offer at least one alternative, such as out-of-band enrolment of a user-generated key. [judgment; guidance, not enforceable by the protocol]
+5. **No fingerprints as identity.** Browser or device fingerprints MUST NOT be used as an identity or trust signal for approvals.
+
+**Alternatives weighed:**
+
+| Option | Verdict |
+|---|---|
+| Ban attestation everywhere | Simple, but blocks legitimate enterprise assurance. Rejected as too blunt. |
+| **Optional enrolment-time evidence only (this section)** | **Recommended.** Keeps the receipt and conformance independent of vendors while allowing local assurance. |
+| Require attestation for irreversible actions | Rejected: vendor capture, device-model leakage, excludes non-mainstream platforms. |
+
+**Honest limit:** a specification cannot stop an operator from adding its own local policy. What it can do, and does here, is make sure the receipt format and conformance never depend on attestation, so nobody can claim the protocol requires it. Multiple keys per authority and key recovery (so no single device is a lock-in) are still unspecified; see `keys.md` gaps.
+
+## 9. What this does not solve
 
 - A hijacked agent can still *ask*, and a rushed human can still approve (threat T8). Enforcement confines the damage to what was approved; it does not judge the approval.
 - Cumulative harm from many small approved actions (threat T16).
