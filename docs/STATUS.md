@@ -40,8 +40,8 @@ Last updated: 13 Oct 2026. One-line focus: **AT1C is a human-signed, single-use,
 7. Legacy code to retire: root `verify.js`, `src/crypto/verifyReceipt.js`, `src/crypto/enforce.js`, `src/crypto/signAgentAction.js` (check what uses them first).
 8. Canonical acronym: SDK header and README now say "The Human Authorisation Layer"; whitepaper uses another expansion. Decide, then align. HRT credit missing from whitepaper references.
 9. Threat model DRAFT written: `spec/threat-model.md` (20 threats, prioritised mitigations; credential-isolation rule now written in `spec/gate.md`; next is an enforcing reference gate, item 17). Not yet written: reference gate demo, shared revocation feed, cumulative/budget limits (spec section 7 lists the gaps).
-10. Secrets tidy-up: encrypted backups of mora-1 and registry-1 (none yet); remove plaintext files that sit beside .gpg copies once the .gpg ones are proven to decrypt; chmod 600 retired-registry-key.json.
-11. Delete the old files in the cPanel app folder: server.OLD-insecure.js and package.OLD.json.
+10. DONE 14 Oct 2026: secrets tidy-up. AES256 gpg backups of mora-1, registry-1, registry-new and the npm recovery codes, each decrypted and compared; copies of all four `.gpg` files on a USB stick; plain `registry-new.json` and `npm-recovery-codes.txt` removed; `retired-registry-key.json` set to mode 600. The working plain keys (mora-1, registry-1) stay on disk because AT1C signs with them. Still the owner's job: passphrases live in a password manager, and a second off-machine copy of the `.gpg` files. The old retired key `retired-registry-key.json` has no backup (retired, low value).
+11. DONE 14 Oct 2026: old cPanel files `server.OLD-insecure.js` and `package.OLD.json` deleted (cPanel trash); `/health` still returns `receipt_format` 1. Leftover to tidy some day: `registry.deploy.tar.gz` (old upload archive) in the app folder.
 12. Python reference files never committed: `tools/at1c_ref.py`, `gen_vectors.py`, `run_vectors.py`. `tools/at1c_cert_ref.py` imports `at1c_ref` and cannot run from the repo; `spec/receipt.md` section 8 names them. Add them or fix the references.
 13. Spec rule to add: **no gate may require device or platform attestation** to accept a receipt (a gate may record it, never require it). Software and hardware user-generated keys are both first-class. Also unspecified: multiple keys per authority and recovery (a single device-bound key is a lock-in and loss risk). Context: passkey-attestation lock-in concerns (Apple/Google).
 14. Decide level 3 algorithm policy after testing a real device: stay ML-DSA-65 only (software key if no hardware), allow hybrid (classical + ML-DSA, both required), or classical-only (not recommended; breaks the post-quantum promise). Not decided.
@@ -62,6 +62,7 @@ Last updated: 13 Oct 2026. One-line focus: **AT1C is a human-signed, single-use,
 
 ## Working rules
 - One change at a time; branch, test, pull request, merge. The user reads slowly: one step per message, short, exact commands, say what output to paste back.
+- For gpg on this machine use `--pinentry-mode loopback` (the pop-up passphrase prompt times out unseen). Never delete a plain secret until its `.gpg` has been decrypted and compared with `cmp`.
 - Use single quotes around git commit messages (a `!` inside double quotes triggers bash history expansion).
 - Run the vectors before and after any change touching receipts or verification.
 - Mark claims as confirmed or inferred. Say what is a standard pattern and what is an AT1C judgment call.
