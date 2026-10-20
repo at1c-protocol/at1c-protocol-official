@@ -33,6 +33,7 @@ export declare function secretKeyToHex(secretKey: Uint8Array): string;
 export declare function hexToSecretKey(hex: string): Uint8Array;
 export declare function canonicalise(payload: ReceiptPayload): Uint8Array;
 export declare function signReceipt(payload: ReceiptPayload, keyPair: KeyPair): SignedReceipt;
+/** @deprecated INSECURE: trusts the public key inside the receipt, so anyone can forge a valid receipt. Use verifyReceiptV1 (spec/receipt.md). */
 export declare function verifyReceipt(receipt: SignedReceipt): VerifyResult;
 export declare function buildReceipt(config: {
     userId: string;

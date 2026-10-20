@@ -69,7 +69,10 @@ export function canonicalise(payload: ReceiptPayload): Uint8Array {
       return acc
     }, {})
   return new TextEncoder().encode(JSON.stringify(sorted))
-}export function signReceipt(
+}
+
+/** @deprecated Pre-v1 format. Use the Approver and Gate instead. */
+export function signReceipt(
   payload: ReceiptPayload,
   keyPair: KeyPair
 ): SignedReceipt {
@@ -139,6 +142,7 @@ export function verifyReceipt(receipt: SignedReceipt): VerifyResult {
   return { valid: true }
 }
 
+/** @deprecated Pre-v1 format. Use the Approver and Gate instead. */
 export function buildReceipt(
   config: {
     userId: string

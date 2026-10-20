@@ -53,6 +53,7 @@ function signReceipt(payload, keyPair) {
         publicKey: Buffer.from(keyPair.publicKey).toString('hex'),
     };
 }
+/** @deprecated INSECURE: trusts the public key inside the receipt, so anyone can forge a valid receipt. Use verifyReceiptV1 (spec/receipt.md). */
 function verifyReceipt(receipt) {
     if (receipt.algorithm !== 'ML-DSA-65') {
         return { valid: false, reason: 'unsupported_algorithm' };
