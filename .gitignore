@@ -26,3 +26,11 @@ trusted-keys.json
 
 receipts.json
 .at1c/
+
+# secrets guard (added 28 Oct 2026)
+.env
+.env.*
+*.key
+*.pem
+*.mldsa65.json
+*.json.gpg
