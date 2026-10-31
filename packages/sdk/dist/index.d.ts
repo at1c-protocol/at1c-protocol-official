@@ -32,7 +32,7 @@ export { AT1C, terminalPrompt, sanitiseAuthority } from './src/client';
 export type { AT1COptions, EnforceConfig, EnforceResult } from './src/client';
 export { LocalKeyApprover, renderRequest, newReceiptId } from './src/approver';
 export type { Approver, ApprovalRequest, ReceiptV1, ActionClass, Prompt } from './src/approver';
-export { Gate, FileNonceStore, MemoryNonceStore, approveAndRun } from './src/gate';
+export { Gate, FileNonceStore, MemoryNonceStore, approveAndRun, NO_REVOCATIONS, fileRevocationList } from './src/gate';
 export type { GateOptions, GateAction, GateResult } from './src/gate';
 export { generateKeyPair, buildReceipt, signReceipt, verifyReceipt, canonicalise, publicKeyToHex, secretKeyToHex, hexToPublicKey, hexToSecretKey, } from './src/crypto';
 export { saveKeyPair, loadKeyPair, loadOrCreateKeyPair, getPublicKeyFromFile, } from './src/keys';

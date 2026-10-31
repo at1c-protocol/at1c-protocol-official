@@ -8,6 +8,10 @@ export interface AT1COptions {
     trustedKeysFile?: string;
     /** Durable single-use nonce store. Default: ./.at1c/nonces */
     nonceDir?: string;
+    /** Optional: your own revoked-receipt list. If not given, the list is read from revokedFile on every check. */
+    revoked?: () => Set<string>;
+    /** Default: revoked.json beside the nonce folder (.at1c/revoked.json). Created empty if missing; unreadable = refuse. */
+    revokedFile?: string;
     /** Deny list. Missing file = no rules. A file that exists but cannot be parsed is an error. Default: ./policies.json */
     policiesFile?: string;
     /** Audit log of every receipt signed, approved or denied. Default: ./receipts.json */

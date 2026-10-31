@@ -33,7 +33,8 @@ var __importStar = (this && this.__importStar) || (function () {
     };
 })();
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.Gate = exports.FileNonceStore = exports.MemoryNonceStore = void 0;
+exports.Gate = exports.NO_REVOCATIONS = exports.FileNonceStore = exports.MemoryNonceStore = void 0;
+exports.fileRevocationList = fileRevocationList;
 exports.approveAndRun = approveAndRun;
 // AT1C Gate. Runs spec/receipt.md section 5 before any side effect (Rule 4, Verification Before Execution).
 // The Gate holds only PUBLIC keys. It never sees a secret key.
@@ -76,9 +77,38 @@ class FileNonceStore {
     }
 }
 exports.FileNonceStore = FileNonceStore;
+/** Explicit opt-out: this Gate has no revocation list. Use only when that is a deliberate choice. */
+const NO_REVOCATIONS = () => new Set();
+exports.NO_REVOCATIONS = NO_REVOCATIONS;
+/** Revocation list kept in a JSON file: an array of revoked receipt ids, e.g. ["at1c_..."].
+ *  Creates the file empty (mode 600) if it does not exist yet, so there is always a visible place to revoke.
+ *  Re-read on every check. If the file later goes missing, or is not a JSON array of strings, the read throws
+ *  and the Gate refuses (GATE_ERROR): hard-fail, never "treat as nothing revoked". */
+function fileRevocationList(file) {
+    fs.mkdirSync(path.dirname(file), { recursive: true, mode: 0o700 });
+    try {
+        fs.writeFileSync(file, '[]\n', { flag: 'wx', mode: 0o600 });
+    }
+    catch (e) {
+        if (!e || e.code !== 'EEXIST')
+            throw e;
+    }
+    return () => {
+        const list = JSON.parse(fs.readFileSync(file, 'utf8'));
+        if (!Array.isArray(list) || !list.every((x) => typeof x === 'string')) {
+            throw new Error(`${file}: must be a JSON array of receipt ids`);
+        }
+        return new Set(list);
+    };
+}
 class Gate {
     constructor(o) {
         this.o = o;
+        // Fail at start-up, not silently at check time: a Gate without a revocation list would never refuse a revoked receipt.
+        if (typeof o?.revoked !== 'function') {
+            throw new Error('AT1C Gate: `revoked` is required and must be a function returning a Set of receipt ids. ' +
+                'If this Gate deliberately has no revocations, pass `revoked: NO_REVOCATIONS`.');
+        }
     }
     /** Verify `receipt` against what is about to run, then run `fn`. Never runs `fn` on any failure.
      *  `fn` receives the payload re-parsed from its canonical form, so what executes is exactly what was hashed.
@@ -95,13 +125,16 @@ class Gate {
         }
         let verdict;
         try {
+            const revoked = this.o.revoked();
+            if (!(revoked instanceof Set))
+                throw new Error('revoked() must return a Set'); // fail closed below
             verdict = (0, verify_1.verifyReceiptV1)(receipt, {
                 now: (this.o.now ?? (() => new Date()))(),
                 pinned: this.o.pinned,
                 allowedAlgs: this.o.allowedAlgs,
                 expected: { agent_id: action.agent_id, type: action.type, resource: action.resource, payload_hash: expectedHash },
                 nonces: this.o.nonces,
-                revoked: this.o.revoked ? this.o.revoked() : new Set(),
+                revoked,
             });
         }
         catch {

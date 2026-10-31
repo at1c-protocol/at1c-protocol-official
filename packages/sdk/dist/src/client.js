@@ -117,6 +117,7 @@ class AT1C {
             allowedAlgs: trusted.allowed_algs,
             nonces: new gate_1.FileNonceStore(o.nonceDir ?? path.join('.at1c', 'nonces')),
             now: o.now,
+            revoked: o.revoked ?? (0, gate_1.fileRevocationList)(o.revokedFile ?? path.join(path.dirname(o.nonceDir ?? path.join('.at1c', 'nonces')), 'revoked.json')),
         });
     }
     /** Public key (base64url) of the approver. */

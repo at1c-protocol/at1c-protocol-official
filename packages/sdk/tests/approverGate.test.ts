@@ -33,7 +33,7 @@ function setup(answer: boolean | ((t: string) => boolean) = true, nonces: any = 
   })
   const gate = new Gate({
     pinned: { [AUTH]: approver.publicRecord('2026-01-01T00:00:00Z', '2027-01-01T00:00:00Z') },
-    allowedAlgs: ['ML-DSA-65'], nonces, now,
+    allowedAlgs: ['ML-DSA-65'], nonces, now, revoked: () => new Set<string>(),
   })
   return { approver, gate, shown }
 }
@@ -201,9 +201,9 @@ describe('FileNonceStore (durable, atomic, fail closed)', () => {
     const pinned = { [AUTH]: approver.publicRecord('2026-01-01T00:00:00Z', '2027-01-01T00:00:00Z') }
     const r = req()
     const receipt = await approver.approve(r)
-    const g1 = new Gate({ pinned, allowedAlgs: ['ML-DSA-65'], nonces: new FileNonceStore(d), now })
+    const g1 = new Gate({ pinned, allowedAlgs: ['ML-DSA-65'], nonces: new FileNonceStore(d), now, revoked: () => new Set<string>() })
     expect((await g1.run(act(r), receipt, () => 1)).status).toBe('executed')
-    const g2 = new Gate({ pinned, allowedAlgs: ['ML-DSA-65'], nonces: new FileNonceStore(d), now })
+    const g2 = new Gate({ pinned, allowedAlgs: ['ML-DSA-65'], nonces: new FileNonceStore(d), now, revoked: () => new Set<string>() })
     expect(await g2.run(act(r), receipt, () => 1)).toEqual({ status: 'refused', code: 'REPLAY' })
   })
   it('fail closed: a broken nonce store means refusal, and fn does not run', async () => {
@@ -214,5 +214,57 @@ describe('FileNonceStore (durable, atomic, fail closed)', () => {
     let ran = false
     expect(await gate.run(act(r), receipt, () => { ran = true })).toEqual({ status: 'refused', code: 'GATE_ERROR' })
     expect(ran).toBe(false)
+  })
+})
+
+describe('Gate: revocation list is required (2.0.0)', () => {
+  it('refuses to start without a revoked list', () => {
+    expect(() => new Gate({ pinned: {}, allowedAlgs: ['ML-DSA-65'], nonces: new MemoryNonceStore() } as any)).toThrow(/revoked/)
+  })
+  it('revoked() returning something other than a Set refuses, and fn does not run', async () => {
+    const { approver } = setup(true)
+    const pinned = { [AUTH]: approver.publicRecord('2026-01-01T00:00:00Z', '2027-01-01T00:00:00Z') }
+    const r = req()
+    const receipt = await approver.approve(r)
+    const g = new Gate({ pinned, allowedAlgs: ['ML-DSA-65'], nonces: new MemoryNonceStore(), now, revoked: (() => [receipt.receipt_id]) as any })
+    let ran = false
+    expect(await g.run(act(r), receipt, () => { ran = true; return 1 })).toEqual({ status: 'refused', code: 'GATE_ERROR' })
+    expect(ran).toBe(false)
+  })
+})
+
+describe('fileRevocationList (2.0.0)', () => {
+  it('creates an empty list if missing; a receipt id added to the file is refused as REVOKED', async () => {
+    const fsm = await import('fs'); const pathm = await import('path')
+    const { fileRevocationList } = await import('../src/gate')
+    const file = pathm.join(fsm.mkdtempSync(pathm.join((await import('os')).tmpdir(), 'at1c-rev-')), 'sub', 'revoked.json')
+    const list = fileRevocationList(file)
+    expect(JSON.parse(fsm.readFileSync(file, 'utf8'))).toEqual([])
+    const { approver } = setup(true)
+    const pinned = { [AUTH]: approver.publicRecord('2026-01-01T00:00:00Z', '2027-01-01T00:00:00Z') }
+    const r = req()
+    const receipt = await approver.approve(r)
+    fsm.writeFileSync(file, JSON.stringify([receipt.receipt_id]))
+    const g = new Gate({ pinned, allowedAlgs: ['ML-DSA-65'], nonces: new MemoryNonceStore(), now, revoked: list })
+    let ran = false
+    expect(await g.run(act(r), receipt, () => { ran = true; return 1 })).toEqual({ status: 'refused', code: 'REVOKED' })
+    expect(ran).toBe(false)
+  })
+  it('file deleted or corrupt after start: refused (GATE_ERROR), fn does not run', async () => {
+    const fsm = await import('fs'); const pathm = await import('path')
+    const { fileRevocationList } = await import('../src/gate')
+    const file = pathm.join(fsm.mkdtempSync(pathm.join((await import('os')).tmpdir(), 'at1c-rev-')), 'revoked.json')
+    const list = fileRevocationList(file)
+    const { approver } = setup(true)
+    const pinned = { [AUTH]: approver.publicRecord('2026-01-01T00:00:00Z', '2027-01-01T00:00:00Z') }
+    for (const breakIt of [() => fsm.rmSync(file), () => fsm.writeFileSync(file, '{not json')]) {
+      const r = req()
+      const receipt = await approver.approve(r)
+      breakIt()
+      const g = new Gate({ pinned, allowedAlgs: ['ML-DSA-65'], nonces: new MemoryNonceStore(), now, revoked: list })
+      let ran = false
+      expect(await g.run(act(r), receipt, () => { ran = true; return 1 })).toEqual({ status: 'refused', code: 'GATE_ERROR' })
+      expect(ran).toBe(false)
+    }
   })
 })

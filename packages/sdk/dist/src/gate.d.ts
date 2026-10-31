@@ -17,9 +17,18 @@ export interface GateOptions {
     pinned: Record<string, KeyRecord>;
     allowedAlgs: string[];
     nonces: NonceStore;
-    revoked?: () => Set<string>;
+    /** REQUIRED (since 2.0.0). Returns the revoked receipt ids; called on every check so a fresh list is used.
+     *  If you really have no revocations, say so explicitly with `revoked: NO_REVOCATIONS`. */
+    revoked: () => Set<string>;
     now?: () => Date;
 }
+/** Explicit opt-out: this Gate has no revocation list. Use only when that is a deliberate choice. */
+export declare const NO_REVOCATIONS: () => Set<string>;
+/** Revocation list kept in a JSON file: an array of revoked receipt ids, e.g. ["at1c_..."].
+ *  Creates the file empty (mode 600) if it does not exist yet, so there is always a visible place to revoke.
+ *  Re-read on every check. If the file later goes missing, or is not a JSON array of strings, the read throws
+ *  and the Gate refuses (GATE_ERROR): hard-fail, never "treat as nothing revoked". */
+export declare function fileRevocationList(file: string): () => Set<string>;
 export interface GateAction {
     agent_id: string;
     type: string;

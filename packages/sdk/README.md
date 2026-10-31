@@ -171,7 +171,7 @@ import { LocalKeyApprover, Gate, FileNonceStore, approveAndRun } from '@at1c/sdk
 
 | | |
 |---|---|
-| `new AT1C(options)` | `authority` (required); optional `keyFile`, `trustedKeysFile`, `nonceDir`, `policiesFile`, `receiptsFile`, `prompt`, `ttlSeconds`. Throws if the key file is group/world readable or does not match the pinned key. |
+| `new AT1C(options)` | `authority` (required); optional `keyFile`, `trustedKeysFile`, `nonceDir`, `policiesFile`, `receiptsFile`, `revokedFile`, `revoked`, `prompt`, `ttlSeconds`. Revoked receipt ids are read from `revokedFile` (default `.at1c/revoked.json`, created empty) on every check; if that file goes missing or is not a JSON array of ids, the action is refused. Throws if the key file is group/world readable or does not match the pinned key. |
 | `at1c.enforce(config, fn)` | `config`: `agentId`, `action`, `resource`, `payload` (required); `class`, `scopeRef`, `description` (optional). Returns `{ status, receipt, result? }` or `{ status: 'denied', reason, receipt? }`. |
 | `at1c.getPublicKey()` | Approver public key, base64url. |
 | `at1c.getApprovalLog()` | Receipts signed in this process. |

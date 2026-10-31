@@ -43,6 +43,7 @@ function canonicalise(payload) {
     }, {});
     return new TextEncoder().encode(JSON.stringify(sorted));
 }
+/** @deprecated Pre-v1 format. Use the Approver and Gate instead. */
 function signReceipt(payload, keyPair) {
     const bytes = canonicalise(payload);
     const sigBytes = ml_dsa_js_1.ml_dsa65.sign(bytes, keyPair.secretKey);
@@ -109,6 +110,7 @@ function verifyReceipt(receipt) {
     _usedNonces.add(receipt.nonce);
     return { valid: true };
 }
+/** @deprecated Pre-v1 format. Use the Approver and Gate instead. */
 function buildReceipt(config, keyPair) {
     const now = new Date();
     const ttl = config.ttlSeconds ?? 300;

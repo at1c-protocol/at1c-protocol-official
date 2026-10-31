@@ -9,7 +9,7 @@ import * as os from 'os'
 import * as path from 'path'
 import * as readline from 'readline'
 import { LocalKeyApprover, type ActionClass, type Prompt, type ReceiptV1 } from './approver'
-import { Gate, FileNonceStore } from './gate'
+import { Gate, FileNonceStore, fileRevocationList } from './gate'
 import type { KeyRecord } from './verify'
 
 export interface AT1COptions {
@@ -21,6 +21,10 @@ export interface AT1COptions {
   trustedKeysFile?: string
   /** Durable single-use nonce store. Default: ./.at1c/nonces */
   nonceDir?: string
+  /** Optional: your own revoked-receipt list. If not given, the list is read from revokedFile on every check. */
+  revoked?: () => Set<string>
+  /** Default: revoked.json beside the nonce folder (.at1c/revoked.json). Created empty if missing; unreadable = refuse. */
+  revokedFile?: string
   /** Deny list. Missing file = no rules. A file that exists but cannot be parsed is an error. Default: ./policies.json */
   policiesFile?: string
   /** Audit log of every receipt signed, approved or denied. Default: ./receipts.json */
@@ -121,6 +125,7 @@ export class AT1C {
       allowedAlgs: trusted.allowed_algs,
       nonces: new FileNonceStore(o.nonceDir ?? path.join('.at1c', 'nonces')),
       now: o.now,
+      revoked: o.revoked ?? fileRevocationList(o.revokedFile ?? path.join(path.dirname(o.nonceDir ?? path.join('.at1c', 'nonces')), 'revoked.json')),
     })
   }
 
