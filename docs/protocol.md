@@ -259,8 +259,8 @@ npm install @at1c/sdk
 Core functions:
 - `createRequest()` — construct a structured action request
 - `approveRequest()` — generate approval intent
-- `signReceipt()` — produce a signed receipt
-- `verifyReceipt()` — verify a receipt before execution
+- `LocalKeyApprover.approve()` — ask the human and produce a signed format-1 receipt
+- `Gate.run()` / `verifyReceiptV1()` — verify a receipt against the verifier's pinned key before execution
 - `detectReplay()` — check nonce against used receipt store
 - `storeReceipt()` — persist receipt for audit
 

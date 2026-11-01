@@ -30,7 +30,7 @@
  * mistakes, not a hijacked agent. See docs/STATUS.md.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.agentIdFor = exports.verifyAgentCertificateV1 = exports.payloadHashOf = exports.jcs = exports.verifyReceiptV1 = exports.getPublicKeyFromFile = exports.loadOrCreateKeyPair = exports.loadKeyPair = exports.saveKeyPair = exports.hexToSecretKey = exports.hexToPublicKey = exports.secretKeyToHex = exports.publicKeyToHex = exports.canonicalise = exports.verifyReceipt = exports.signReceipt = exports.buildReceipt = exports.generateKeyPair = exports.fileRevocationList = exports.NO_REVOCATIONS = exports.approveAndRun = exports.MemoryNonceStore = exports.FileNonceStore = exports.Gate = exports.newReceiptId = exports.renderRequest = exports.LocalKeyApprover = exports.sanitiseAuthority = exports.terminalPrompt = exports.AT1C = void 0;
+exports.agentIdFor = exports.verifyAgentCertificateV1 = exports.payloadHashOf = exports.jcs = exports.verifyReceiptV1 = exports.getPublicKeyFromFile = exports.loadOrCreateKeyPair = exports.loadKeyPair = exports.saveKeyPair = exports.hexToSecretKey = exports.hexToPublicKey = exports.secretKeyToHex = exports.publicKeyToHex = exports.generateKeyPair = exports.fileRevocationList = exports.NO_REVOCATIONS = exports.approveAndRun = exports.MemoryNonceStore = exports.FileNonceStore = exports.Gate = exports.newReceiptId = exports.renderRequest = exports.LocalKeyApprover = exports.sanitiseAuthority = exports.terminalPrompt = exports.AT1C = void 0;
 // ── Core client ───────────────────────────────────────────────────────────────
 var client_1 = require("./src/client");
 Object.defineProperty(exports, "AT1C", { enumerable: true, get: function () { return client_1.AT1C; } });
@@ -48,13 +48,9 @@ Object.defineProperty(exports, "MemoryNonceStore", { enumerable: true, get: func
 Object.defineProperty(exports, "approveAndRun", { enumerable: true, get: function () { return gate_1.approveAndRun; } });
 Object.defineProperty(exports, "NO_REVOCATIONS", { enumerable: true, get: function () { return gate_1.NO_REVOCATIONS; } });
 Object.defineProperty(exports, "fileRevocationList", { enumerable: true, get: function () { return gate_1.fileRevocationList; } });
-// ── Crypto primitives (legacy; verifyReceipt is deprecated and INSECURE) ──────
+// ── Key helpers (the pre-v1 receipt functions were removed in 2.0.0) ─────────
 var crypto_1 = require("./src/crypto");
 Object.defineProperty(exports, "generateKeyPair", { enumerable: true, get: function () { return crypto_1.generateKeyPair; } });
-Object.defineProperty(exports, "buildReceipt", { enumerable: true, get: function () { return crypto_1.buildReceipt; } });
-Object.defineProperty(exports, "signReceipt", { enumerable: true, get: function () { return crypto_1.signReceipt; } });
-Object.defineProperty(exports, "verifyReceipt", { enumerable: true, get: function () { return crypto_1.verifyReceipt; } });
-Object.defineProperty(exports, "canonicalise", { enumerable: true, get: function () { return crypto_1.canonicalise; } });
 Object.defineProperty(exports, "publicKeyToHex", { enumerable: true, get: function () { return crypto_1.publicKeyToHex; } });
 Object.defineProperty(exports, "secretKeyToHex", { enumerable: true, get: function () { return crypto_1.secretKeyToHex; } });
 Object.defineProperty(exports, "hexToPublicKey", { enumerable: true, get: function () { return crypto_1.hexToPublicKey; } });

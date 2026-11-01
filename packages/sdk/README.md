@@ -143,7 +143,7 @@ Codes: `OK`, `SCHEMA`, `ALG_NOT_ALLOWED`, `UNKNOWN_AUTHORITY`, `KEY_NOT_VALID`, 
 
 Conformance vectors: `spec/test-vectors/receipt-v1.json`.
 
-> **Deprecated and insecure:** the old `verifyReceipt()` and `buildReceipt()` use the pre-v1 format and trust the public key inside the receipt. Do not use them for anything real.
+> **Removed in 2.0.0:** the old pre-v1 `signReceipt()`, `verifyReceipt()` and `buildReceipt()`. The old verifier trusted the public key inside the receipt, so anyone could forge one. Use the Approver and Gate (receipt format 1).
 
 ## Policies
 

@@ -21,7 +21,7 @@ Last updated: 13 Oct 2026. One-line focus: **AT1C is a human-signed, single-use,
 ## Done
 - Canonical spec, key model, 22 vectors; SDK verifier passes all of them.
 - FIPS 203 corrected to FIPS 204 (ML-DSA) in README, docs/README, scripts.
-- Old `verifyReceipt` marked deprecated and INSECURE (it trusts the key inside the receipt).
+- Old `verifyReceipt` (trusted the key inside the receipt) removed from the SDK in 2.0.0, with `signReceipt`, `buildReceipt` and the compliance demo (1 Nov).
 - Live `/v1/verify` on registry.at1c.com runs the new `server.js` (12 Oct).
 - Registry key rotated to ML-DSA-65 (registry-1); agent certificates v1 (spec, 21 vectors, `register-agent.js` rewritten) (13 Oct).
 - Level 1 `Approver` and `Gate` (`src/approver.ts`, `src/gate.ts`, durable atomic nonce store, fail closed) (13 Oct).

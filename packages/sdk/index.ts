@@ -39,13 +39,9 @@ export type { Approver, ApprovalRequest, ReceiptV1, ActionClass, Prompt } from '
 export { Gate, FileNonceStore, MemoryNonceStore, approveAndRun, NO_REVOCATIONS, fileRevocationList } from './src/gate'
 export type { GateOptions, GateAction, GateResult } from './src/gate'
 
-// ── Crypto primitives (legacy; verifyReceipt is deprecated and INSECURE) ──────
+// ── Key helpers (the pre-v1 receipt functions were removed in 2.0.0) ─────────
 export {
   generateKeyPair,
-  buildReceipt,
-  signReceipt,
-  verifyReceipt,
-  canonicalise,
   publicKeyToHex,
   secretKeyToHex,
   hexToPublicKey,
@@ -63,12 +59,7 @@ export {
 // ── Types — everything a consumer needs to type their integration ─────────────
 export type { ApprovalReceipt } from './src/types'
 
-export type {
-  KeyPair,
-  ReceiptPayload,
-  SignedReceipt,
-  VerifyResult,
-} from './src/crypto'
+export type { KeyPair } from './src/crypto'
 
 export type { StoredKeyPair } from './src/keys'
 
