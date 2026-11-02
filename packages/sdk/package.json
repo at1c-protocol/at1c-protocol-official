@@ -38,5 +38,14 @@
   },
   "engines": {
     "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/at1c-protocol/at1c-protocol-official.git",
+    "directory": "packages/sdk"
+  },
+  "homepage": "https://github.com/at1c-protocol/at1c-protocol-official#readme",
+  "bugs": {
+    "url": "https://github.com/at1c-protocol/at1c-protocol-official/issues"
   }
 }
