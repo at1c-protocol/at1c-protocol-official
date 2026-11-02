@@ -11,7 +11,7 @@
 
 ## Executive Summary
 
-AI agents are taking consequential actions on behalf of humans and organisations sending payments, filing documents, scheduling appointments, managing data with no verifiable record that a human actually authorised those actions. The EU AI Act is now in force. Its transparency duties apply from 2 August 2026, and its high-risk requirements, which include human oversight and automatic logging, apply from 2 December 2027. Together they call for the record that is missing: accountability for automated decisions, human oversight of high-risk AI actions, and auditable logs of AI behaviour. South Korea's AI Basic Act, in force since 22 January 2026, points the same way.
+AI agents are taking consequential actions on behalf of humans and organisations sending payments, filing documents, scheduling appointments, managing data with no verifiable record that a human actually authorised those actions. The EU AI Act is now in force. Its transparency duties have applied since 2 August 2026, and its high-risk requirements, which include human oversight and automatic logging, apply from 2 December 2027. Together they call for the record that is missing: accountability for automated decisions, human oversight of high-risk AI actions, and auditable logs of AI behaviour. South Korea's AI Basic Act, in force since 22 January 2026, points the same way.
 
 AT1C Protocol, The Human Authorisation Layer, is an open protocol that addresses this problem with a single, cryptographically verifiable primitive: a signed receipt that proves a specific human approved a specific AI agent action before it executed. AT1C works for individual users protecting their personal AI assistants, and for organisations managing fleets of agents operating across business processes.
 
@@ -169,7 +169,7 @@ AT1C is one layer in a defence-in-depth stack. The receipt proves a specific key
 | Art. 17 | Quality management | Receipts are timestamped, tamper-evident records that a quality management system can draw on |
 | Art. 26 | Deployer obligations | Supports deployers' duties to assign human oversight and keep records; it does not replace system-level logging |
 
-**When these apply (as of 19 October 2026):** The Act is in force. Art. 50 transparency duties apply from 2 August 2026, with a transition to 2 December 2026 for synthetic-content marking. High-risk requirements (Annex III) apply from 2 December 2027, and product-embedded AI from 2 August 2028, under Regulation (EU) 2026/1744. These dates have moved before and may move again; check current sources before relying on them. AT1C supports and evidences these duties. It does not by itself make a system compliant.
+**When these apply (as of 19 October 2026):** The Act is in force. Art. 50 transparency duties have applied since 2 August 2026, with a transition to 2 December 2026 for synthetic-content marking. High-risk requirements (Annex III) apply from 2 December 2027, and product-embedded AI from 2 August 2028, under Regulation (EU) 2026/1744. These dates have moved before and may move again; check current sources before relying on them. AT1C supports and evidences these duties. It does not by itself make a system compliant.
 
 ### Beyond the EU
 
