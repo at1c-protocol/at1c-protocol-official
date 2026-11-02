@@ -11,7 +11,7 @@
 
 ## Executive Summary
 
-AI agents are taking consequential actions on behalf of humans and organisations sending payments, filing documents, scheduling appointments, managing data with no verifiable record that a human actually authorised those actions. The EU AI Act is now in force. Its transparency duties apply from 2 August 2026, and its high-risk requirements, which include human oversight and automatic logging, apply from 2 December 2027. Together they call for the record that is missing: accountability for automated decisions, human oversight of high-risk AI actions, and auditable logs of AI behaviour. Korea's AI Basic Act, in force since 22 January 2026, points the same way.
+AI agents are taking consequential actions on behalf of humans and organisations sending payments, filing documents, scheduling appointments, managing data with no verifiable record that a human actually authorised those actions. The EU AI Act is now in force. Its transparency duties apply from 2 August 2026, and its high-risk requirements, which include human oversight and automatic logging, apply from 2 December 2027. Together they call for the record that is missing: accountability for automated decisions, human oversight of high-risk AI actions, and auditable logs of AI behaviour. South Korea's AI Basic Act, in force since 22 January 2026, points the same way.
 
 AT1C Protocol, The Human Authorisation Layer, is an open protocol that addresses this problem with a single, cryptographically verifiable primitive: a signed receipt that proves a specific human approved a specific AI agent action before it executed. AT1C works for individual users protecting their personal AI assistants, and for organisations managing fleets of agents operating across business processes.
 
@@ -173,7 +173,7 @@ AT1C is one layer in a defence-in-depth stack. The receipt proves a specific key
 
 ### Beyond the EU
 
-Korea's AI Basic Act came into force on 22 January 2026. It requires operators of high-impact AI to provide a mechanism for human intervention and supervision. The ministry has indicated a grace period of about one year, with administrative fines expected from January 2027 and capped at KRW 30 million. A signed approval receipt is a direct way to evidence that this human oversight happened. No law names AT1C; the duties it evidences are the ones now written into law.
+South Korea's AI Basic Act came into force on 22 January 2026. It requires operators of high-impact AI to provide a mechanism for human intervention and supervision. The ministry has indicated a grace period of about one year, with administrative fines expected from January 2027 and capped at KRW 30 million. A signed approval receipt is a direct way to evidence that this human oversight happened. No law names AT1C; the duties it evidences are the ones now written into law.
 
 ---
 
@@ -233,7 +233,7 @@ Published work that bears on AT1C. Figures are the authors' own, several authors
 
 ### Regulatory and commercial signals
 
-- **Korea PIPA revision (effective 11 Sept 2026), as reported.** Fines of up to 10% of revenue for repeated or serious violations affecting 10 million or more people, or after a failed compliance order, with possible reductions where a company shows qualifying privacy investment. The qualifying criteria await a Presidential Decree. A receipt chain may support that kind of governance argument. This is not legal advice.
+- **South Korea PIPA revision (effective 11 Sept 2026), as reported.** Fines of up to 10% of revenue for repeated or serious violations affecting 10 million or more people, or after a failed compliance order, with possible reductions where a company shows qualifying privacy investment. The qualifying criteria await a Presidential Decree. A receipt chain may support that kind of governance argument. This is not legal advice.
 - **Willems (Sept 2026).** Argues that not regulating is itself a regulatory choice, and floats a safe harbour for firms meeting a defined safety standard. A verifiable approval record is the kind of artefact such a standard could reference.
 - **Benedict Evans (Sept 2026).** Describes an "institutionalisation moment", when an improvised AI workflow becomes repeatable and high-stakes and needs audit and accountability. He does not name who approved what, which is the question AT1C answers.
 - **Sovereign AI commentary (Wang, Onyx, DataCouch, Cosine's Lumen, Oct 2026).** Treats sovereignty as layers of control, not a wall. "Operational sovereignty", meaning who can switch a system off, corresponds to AT1C's revocation receipts and dead-man's switch. Onyx and DataCouch are vendors, and Lumen is unreleased.

@@ -220,7 +220,7 @@ Full list: `spec/receipt.md` section 7 and `spec/keys.md`.
 
 ## Where it fits
 
-Anywhere you need evidence that a human approved an action: payments, health and legal work, software releases, personal assistants, family and estate planning, and more. It also fits oversight and record-keeping duties such as those in the EU AI Act and Korea's AI Basic Act.
+Anywhere you need evidence that a human approved an action: payments, health and legal work, software releases, personal assistants, family and estate planning, and more. It also fits oversight and record-keeping duties such as those in the EU AI Act and South Korea's AI Basic Act.
 
 AT1C produces signed, tamper-evident records of human approval. It is not legal advice and makes no claim of compliance with any regulation; check your obligations with a qualified adviser.
 
