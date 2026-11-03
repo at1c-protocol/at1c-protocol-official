@@ -13,7 +13,6 @@
     "build": "npx tsc --noEmit",
     "demo:ai": "npx ts-node --compiler-options '{\"module\":\"CommonJS\"}' examples/ai-agent-demo/index.ts",
     "receipts": "npx ts-node --compiler-options '{\"module\":\"CommonJS\"}' examples/receipts-viewer.ts",
-    "verify": "node verify.js",
     "test": "vitest run"
   },
   "repository": {
