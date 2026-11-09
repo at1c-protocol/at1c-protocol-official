@@ -34,3 +34,5 @@ receipts.json
 *.pem
 *.mldsa65.json
 *.json.gpg
+
+.claude/settings.local.json
