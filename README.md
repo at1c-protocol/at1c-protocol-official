@@ -26,7 +26,7 @@ Or clone the repo and run the full test suite (over 100 tests):
 
 ```bash
 git clone https://github.com/at1c-protocol/at1c-protocol-official.git
-cd at1c-protocol-official
+cd at1c-protocol-official/packages/sdk
 npm install
 npm test
 ```
