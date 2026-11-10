@@ -279,7 +279,7 @@ Full documentation: **github.com/at1c-protocol/at1c-protocol-official**
 | v1.5 | Planned | End-user passkey (WebAuthn/FIDO2) onboarding |
 | v1.6 | Planned | Hosted receipt storage — 10-year retention paid tier |
 | v2.0 | Planned | Tiered autonomy with alarm thresholds |
-| v2.1 | Planned | Algorand x402 payment integration |
+| v2.1 | Planned | Optional anchor adapters (OpenTimestamps first; chains such as CKB or Algorand as candidates) |
 | v2.2 | Planned | Principal lifecycle — agent inheritance, dissolution triggers, zombie corp protection |
 | Future | Roadmap | Agent Manifest per EU AI Act Art 13/14, post-quantum signature migration, IANA well-known URI registration |
 

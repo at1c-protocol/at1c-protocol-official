@@ -33,7 +33,7 @@ npm test
 
 ## Key Documents
 
-- 📄 **Whitepaper** — EU AI Act compliance, sector analysis, Algorand x402 payment architecture
+- 📄 **Whitepaper** — EU AI Act context and sector analysis
 - 📜 **Manifesto** — AT1C founding principles: sovereign identity, humans first
 - 📚 **All docs** — protocol spec, receipts, verification, SDK reference
 
