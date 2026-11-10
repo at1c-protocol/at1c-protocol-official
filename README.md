@@ -1,40 +1,34 @@
 # AT1C Protocol
 
-**Cryptographic Human Consent for AI Agent Actions**
+**The Human Authorisation Layer for AI agents**
 
 [![MIT License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE) [![npm](https://img.shields.io/npm/v/@at1c/sdk)](https://www.npmjs.com/package/@at1c/sdk) [![Registry](https://img.shields.io/badge/registry-live-green)](https://registry.at1c.com/health)
 
----
+**Your AI agent can't act until you sign. Anyone can check the receipt.**
 
-## 🔐 Post-Quantum Ready — ML-DSA-65 (FIPS 204)
+AT1C gives an agent action a signed receipt: proof that a human approved that exact action before it ran.
 
-AT1C uses **ML-DSA-65**, a NIST-approved post-quantum digital signature scheme (FIPS 204). Ed25519 has been retired. Every receipt, certificate, and verification is now quantum-resistant.
+- **You hold the key.** Your approval key stays with you. No platform signs for you.
+- **Exact scope.** Approved for £5 means refused at £500.
+- **Single use.** A receipt used twice is refused.
+- **Tamper-evident.** Change one detail and the signature fails.
+- **Post-quantum.** Receipts are signed with ML-DSA-65 (NIST FIPS 204).
 
-**SDK v1.0.3 — 12/12 tests passing — published to npm.**
+No valid receipt, no action, for everything routed through an AT1C gate.
 
-While others are planning quantum resistance, AT1C has shipped it.
+## Try it
 
----
+```bash
+npm install @at1c/sdk
+```
 
-AT1C gives you a cryptographically signed, independently verifiable proof that a human approved a specific AI agent action before that action executes.
-
-**No approval, no valid action. No exceptions.**
-
-Built for developers. Required for EU AI Act compliance (enforcement: August 2026).
-
-## Try it in 30 seconds
+Or clone the repo and run the full test suite (over 100 tests):
 
 ```bash
 git clone https://github.com/at1c-protocol/at1c-protocol-official.git
 cd at1c-protocol-official
 npm install
-npm run demo
-```
-
-Or install the SDK directly:
-
-```bash
-npm install @at1c/sdk
+npm test
 ```
 
 ## Key Documents
