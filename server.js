@@ -20,7 +20,6 @@ const isStr = (x) => typeof x === 'string' && x.length > 0
 
 function createApp({ verify, payloadHashOf, trusted, now = () => new Date() }) {
   const app = express()
-  app.set('trust proxy', true)
   app.use(express.json({ limit: '64kb' }))
 
   app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')))
