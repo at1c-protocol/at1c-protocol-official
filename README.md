@@ -33,9 +33,9 @@ npm test
 
 ## Key Documents
 
-- 📄 **Whitepaper** — EU AI Act context and sector analysis
-- 📜 **Manifesto** — AT1C founding principles: sovereign identity, humans first
-- 📚 **All docs** — protocol spec, receipts, verification, SDK reference
+- 📄 **[Whitepaper](docs/whitepaper.md)** — EU AI Act context and sector analysis
+- 📜 **[Manifesto](docs/manifesto.md)** — AT1C founding principles: sovereign identity, humans first
+- 📚 **[All docs](docs/)** — protocol spec, receipts, verification, SDK reference
 
 ## Live Registry
 
@@ -71,6 +71,6 @@ The EU AI Act begins enforcement in August
 * Verify endpoint: ✅ live (v1.2) at registry.at1c.com over HTTPS, free to use. It checks a receipt's ML-DSA-65 signature, expiry and nonce. It does not yet check that the signing key belongs to a registered agent. Agent certificates are issued by a command-line script, and the registry signing key is kept off the server and out of this repository.
 * Open web registration: 🔧 in progress. The registration page is built (userspice-integration), but the live registry has no registration route yet. Registration is currently by command line only.
 * Browser-side keypair generation: 🔧 built into the registration page; it will be usable once the registration route is live.
-* Quantum resistance: ✅ the SDK (v1.0.3) signs and verifies receipts with ML-DSA-65 (NIST FIPS 204). Registry certificates are currently signed with Ed25519, which is not post-quantum; migration is planned.
+* Quantum resistance: ✅ the SDK signs and verifies receipts with ML-DSA-65 (NIST FIPS 204). Registry certificates are currently signed with Ed25519, which is not post-quantum; migration is planned.
 
 - **End-user passkey onboarding** (planned
