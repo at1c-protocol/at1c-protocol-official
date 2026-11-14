@@ -185,6 +185,12 @@ Proofs must be tamper-evident, reproducible, and independently verifiable. No tr
 ### Rule 4 — Verification Before Execution
 Any system receiving a request must verify the receipt before executing the action.
 
+For higher-risk actions, the receipt must also come with proof of time from an independent source before the action runs. Any accepted method may be used; no blockchain is required. If the time proof cannot be obtained, the action does not run.
+
+Higher-risk actions are those that move money or release personal data, and any others the verifier's own policy names. A verifier may add to this list but may not remove from it. The verifier decides an action's category from its own pinned rules, never from the agent's request. An action its rules do not name is treated as the strictest category.
+
+*Time proof is planned and not yet shipped. Today the SDK enforces the first sentence of this rule.*
+
 ### Rule 5 — Replay Protection
 A previously used nonce must not be accepted again. Replay detection prevents repeated execution using reused receipts.
 
