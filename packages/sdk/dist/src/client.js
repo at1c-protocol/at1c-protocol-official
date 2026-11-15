@@ -39,7 +39,8 @@ exports.AT1C = exports.terminalPrompt = exports.sanitiseAuthority = void 0;
 // SECURITY NOTE: the Approver key is read from a file owned by the same OS user that runs the agent.
 // This stops mistakes and bugs, not a hijacked agent (see docs/STATUS.md, levels 2 and 3).
 // What this class does guarantee: nothing runs without a human-signed, single-use, payload-bound receipt
-// that the Gate verified against the operator's pinned public key (Rules 1 to 5).
+// (format 2: labelled signature, salted fingerprint, named audience) that the Gate verified against the
+// operator's pinned public key (Rules 1 to 5).
 const fs = __importStar(require("fs"));
 const os = __importStar(require("os"));
 const path = __importStar(require("path"));
@@ -94,6 +95,10 @@ function loadPolicies(file) {
 class AT1C {
     constructor(o) {
         this.approvalLog = [];
+        if (typeof o.audience !== 'string' || o.audience.length === 0) {
+            throw new Error('AT1C: `audience` is required: the name of this gate, which every receipt is made for.');
+        }
+        this.audience = o.audience;
         const keyFile = o.keyFile ??
             process.env.AT1C_APPROVER_KEY_FILE ??
             path.join(os.homedir(), 'at1c-secrets', `${(0, exports.sanitiseAuthority)(o.authority)}.mldsa65.json`);
@@ -113,6 +118,7 @@ class AT1C {
             throw new Error('the key file does not match the key pinned for this authority in trusted-keys');
         }
         this.gate = new gate_1.Gate({
+            audience: o.audience,
             pinned: trusted.keys,
             allowedAlgs: trusted.allowed_algs,
             nonces: new gate_1.FileNonceStore(o.nonceDir ?? path.join('.at1c', 'nonces')),
@@ -124,8 +130,12 @@ class AT1C {
     getPublicKey() {
         return this.publicKey;
     }
-    /** Receipts signed during this process, approved and denied. */
+    /** Receipts signed during this process, approved and denied (without payloads or salts). */
     getApprovalLog() {
+        return this.approvalLog.map((b) => b.receipt);
+    }
+    /** The full bundles signed during this process: each receipt with its attachment. Holds payloads. */
+    getBundles() {
         return this.approvalLog;
     }
     /** Ask the human, then run `fn(payload)` only if a receipt for exactly this action verifies. */
@@ -134,7 +144,8 @@ class AT1C {
         if (policy?.decision === 'deny')
             return { status: 'denied', reason: 'blocked_policy' };
         // A policy decision of "allow" does not skip the receipt. Authority comes only from a human signature (Rule 1).
-        const receipt = await this.approver.approve({
+        const bundle = await this.approver.approve({
+            audience: this.audience,
             agent_id: config.agentId,
             agent_public_key: config.agentPublicKey ?? 'unspecified',
             type: config.action,
@@ -144,14 +155,16 @@ class AT1C {
             scope_ref: config.scopeRef,
             description: config.description,
         });
-        this.approvalLog.push(receipt);
-        this.saveReceipt(receipt); // before running anything: if the audit write fails, fn does not run
-        const out = await this.gate.run({ agent_id: config.agentId, type: config.action, resource: config.resource, payload: config.payload }, receipt, fn);
+        const receipt = bundle.receipt;
+        this.approvalLog.push(bundle);
+        this.saveBundle(bundle); // before running anything: if the audit write fails, fn does not run
+        const out = await this.gate.run({ agent_id: config.agentId, type: config.action, resource: config.resource }, bundle, fn);
         if (out.status === 'executed')
-            return { status: 'approved', result: out.result, receipt };
-        return { status: 'denied', reason: out.code === 'DENIED' ? 'user_rejected' : out.code, receipt };
+            return { status: 'approved', result: out.result, receipt, bundle };
+        return { status: 'denied', reason: out.code === 'DENIED' ? 'user_rejected' : out.code, receipt, bundle };
     }
-    saveReceipt(receipt) {
+    /** One file, receipt and attachment together, so the two halves cannot be separated by accident. */
+    saveBundle(bundle) {
         let list = [];
         if (fs.existsSync(this.receiptsFile)) {
             const j = JSON.parse(fs.readFileSync(this.receiptsFile, 'utf-8')); // corrupt file throws; never overwrite it
@@ -159,7 +172,7 @@ class AT1C {
                 throw new Error(`${this.receiptsFile} must be a JSON array`);
             list = j;
         }
-        list.push(receipt);
+        list.push(bundle);
         const tmp = `${this.receiptsFile}.tmp-${process.pid}`;
         fs.writeFileSync(tmp, JSON.stringify(list, null, 2), { mode: 0o600 });
         fs.renameSync(tmp, this.receiptsFile);

@@ -3,18 +3,22 @@
 // SECURITY NOTE: the Approver key is read from a file owned by the same OS user that runs the agent.
 // This stops mistakes and bugs, not a hijacked agent (see docs/STATUS.md, levels 2 and 3).
 // What this class does guarantee: nothing runs without a human-signed, single-use, payload-bound receipt
-// that the Gate verified against the operator's pinned public key (Rules 1 to 5).
+// (format 2: labelled signature, salted fingerprint, named audience) that the Gate verified against the
+// operator's pinned public key (Rules 1 to 5).
 import * as fs from 'fs'
 import * as os from 'os'
 import * as path from 'path'
 import * as readline from 'readline'
-import { LocalKeyApprover, type ActionClass, type Prompt, type ReceiptV1 } from './approver'
+import { LocalKeyApprover, type ActionClass, type Bundle, type Prompt, type ReceiptV2 } from './approver'
 import { Gate, FileNonceStore, fileRevocationList } from './gate'
 import type { KeyRecord } from './verify'
 
 export interface AT1COptions {
   /** Authority id of the human approver, e.g. "did:web:example.com#user-1". Must be pinned in trustedKeysFile. */
   authority: string
+  /** REQUIRED (format 2). The name of this gate, for example its web address. Every receipt is made for exactly
+   *  this name and the gate refuses receipts made for any other. */
+  audience: string
   /** Secret key file (mode 600). Default: env AT1C_APPROVER_KEY_FILE, else ~/at1c-secrets/<authority>.mldsa65.json */
   keyFile?: string
   /** Pinned public keys (same shape as trusted-keys.example.json). Default: env AT1C_TRUSTED_KEYS, else ./trusted-keys.json */
@@ -27,7 +31,9 @@ export interface AT1COptions {
   revokedFile?: string
   /** Deny list. Missing file = no rules. A file that exists but cannot be parsed is an error. Default: ./policies.json */
   policiesFile?: string
-  /** Audit log of every receipt signed, approved or denied. Default: ./receipts.json */
+  /** Audit log of every bundle signed, approved or denied: the receipt AND its attachment (payload and salt),
+   *  kept together so the evidence can always be matched. It holds payloads in plain view (file mode 600);
+   *  share `receiptOnly(bundle)` with outsiders. Default: ./receipts.json */
   receiptsFile?: string
   prompt?: Prompt
   now?: () => Date
@@ -42,12 +48,12 @@ export interface EnforceConfig {
   class?: ActionClass // default 'irreversible' (the most cautious label)
   scopeRef?: string
   description?: string
-  agentPublicKey?: string // informational in format 1
+  agentPublicKey?: string // informational in format 2
 }
 
 export type EnforceResult =
-  | { status: 'approved'; result: any; receipt: ReceiptV1 }
-  | { status: 'denied'; reason: string; receipt?: ReceiptV1 }
+  | { status: 'approved'; result: any; receipt: ReceiptV2; bundle: Bundle }
+  | { status: 'denied'; reason: string; receipt?: ReceiptV2; bundle?: Bundle }
 
 /** Safe file-name form of an authority id, matching tools/new-authority-key.mjs. */
 export const sanitiseAuthority = (a: string): string => a.replace(/[^A-Za-z0-9._-]/g, '_')
@@ -97,9 +103,14 @@ export class AT1C {
   private readonly policies: Array<{ action: string; decision: string }>
   private readonly receiptsFile: string
   private readonly publicKey: string
-  private approvalLog: ReceiptV1[] = []
+  private readonly audience: string
+  private approvalLog: Bundle[] = []
 
   constructor(o: AT1COptions) {
+    if (typeof o.audience !== 'string' || o.audience.length === 0) {
+      throw new Error('AT1C: `audience` is required: the name of this gate, which every receipt is made for.')
+    }
+    this.audience = o.audience
     const keyFile =
       o.keyFile ??
       process.env.AT1C_APPROVER_KEY_FILE ??
@@ -121,6 +132,7 @@ export class AT1C {
       throw new Error('the key file does not match the key pinned for this authority in trusted-keys')
     }
     this.gate = new Gate({
+      audience: o.audience,
       pinned: trusted.keys,
       allowedAlgs: trusted.allowed_algs,
       nonces: new FileNonceStore(o.nonceDir ?? path.join('.at1c', 'nonces')),
@@ -134,8 +146,13 @@ export class AT1C {
     return this.publicKey
   }
 
-  /** Receipts signed during this process, approved and denied. */
-  getApprovalLog(): ReceiptV1[] {
+  /** Receipts signed during this process, approved and denied (without payloads or salts). */
+  getApprovalLog(): ReceiptV2[] {
+    return this.approvalLog.map((b) => b.receipt)
+  }
+
+  /** The full bundles signed during this process: each receipt with its attachment. Holds payloads. */
+  getBundles(): Bundle[] {
     return this.approvalLog
   }
 
@@ -145,7 +162,8 @@ export class AT1C {
     if (policy?.decision === 'deny') return { status: 'denied', reason: 'blocked_policy' }
     // A policy decision of "allow" does not skip the receipt. Authority comes only from a human signature (Rule 1).
 
-    const receipt = await this.approver.approve({
+    const bundle = await this.approver.approve({
+      audience: this.audience,
       agent_id: config.agentId,
       agent_public_key: config.agentPublicKey ?? 'unspecified',
       type: config.action,
@@ -155,26 +173,28 @@ export class AT1C {
       scope_ref: config.scopeRef,
       description: config.description,
     })
-    this.approvalLog.push(receipt)
-    this.saveReceipt(receipt) // before running anything: if the audit write fails, fn does not run
+    const receipt = bundle.receipt
+    this.approvalLog.push(bundle)
+    this.saveBundle(bundle) // before running anything: if the audit write fails, fn does not run
 
     const out = await this.gate.run(
-      { agent_id: config.agentId, type: config.action, resource: config.resource, payload: config.payload },
-      receipt,
+      { agent_id: config.agentId, type: config.action, resource: config.resource },
+      bundle,
       fn,
     )
-    if (out.status === 'executed') return { status: 'approved', result: out.result, receipt }
-    return { status: 'denied', reason: out.code === 'DENIED' ? 'user_rejected' : out.code, receipt }
+    if (out.status === 'executed') return { status: 'approved', result: out.result, receipt, bundle }
+    return { status: 'denied', reason: out.code === 'DENIED' ? 'user_rejected' : out.code, receipt, bundle }
   }
 
-  private saveReceipt(receipt: ReceiptV1): void {
+  /** One file, receipt and attachment together, so the two halves cannot be separated by accident. */
+  private saveBundle(bundle: Bundle): void {
     let list: unknown[] = []
     if (fs.existsSync(this.receiptsFile)) {
       const j = JSON.parse(fs.readFileSync(this.receiptsFile, 'utf-8')) // corrupt file throws; never overwrite it
       if (!Array.isArray(j)) throw new Error(`${this.receiptsFile} must be a JSON array`)
       list = j
     }
-    list.push(receipt)
+    list.push(bundle)
     const tmp = `${this.receiptsFile}.tmp-${process.pid}`
     fs.writeFileSync(tmp, JSON.stringify(list, null, 2), { mode: 0o600 })
     fs.renameSync(tmp, this.receiptsFile)

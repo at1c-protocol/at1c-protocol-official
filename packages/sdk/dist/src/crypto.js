@@ -6,9 +6,9 @@ exports.hexToPublicKey = hexToPublicKey;
 exports.secretKeyToHex = secretKeyToHex;
 exports.hexToSecretKey = hexToSecretKey;
 const ml_dsa_js_1 = require("@noble/post-quantum/ml-dsa.js");
-const utils_1 = require("@noble/hashes/utils");
+const crypto_1 = require("crypto");
 function generateKeyPair() {
-    const seed = (0, utils_1.randomBytes)(32);
+    const seed = (0, crypto_1.randomBytes)(32);
     const keys = ml_dsa_js_1.ml_dsa65.keygen(seed);
     return {
         secretKey: keys.secretKey,

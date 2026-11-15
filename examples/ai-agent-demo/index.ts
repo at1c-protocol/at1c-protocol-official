@@ -8,7 +8,9 @@ async function main() {
     console.error('Set AT1C_AUTHORITY to your approver authority id (see the comment at the top of this file).')
     process.exit(1)
   }
-  const at1c = new AT1C({ authority })
+  // Format 2: every receipt is made for one named gate. Pick a name for yours, for example its web address.
+  const audience = process.env.AT1C_AUDIENCE ?? 'local-demo-gate'
+  const at1c = new AT1C({ authority, audience })
 
   console.log('\nAT1C AI Agent Demo')
   console.log('Approver public key:', at1c.getPublicKey())

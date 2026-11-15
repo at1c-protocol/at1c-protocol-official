@@ -3,14 +3,14 @@ import { describe, it, expect } from 'vitest'
 import * as fs from 'fs'
 import * as path from 'path'
 import type { AddressInfo } from 'net'
-import { verifyReceiptV1, payloadHashOf } from '../src/verify'
+import { verifyReceiptV2, attachmentHashOf } from '../src/verify'
 // @ts-ignore: plain CommonJS file at the repo root
 import { createApp } from '../../../server.js'
 
-const data = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../../../spec/test-vectors/receipt-v1.json'), 'utf-8'))
+const data = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../../../spec/test-vectors/receipt-v2.json'), 'utf-8'))
 
 async function call(trusted: any, now: string, body: any, raw?: string) {
-  const app = createApp({ verify: verifyReceiptV1, payloadHashOf, trusted, now: () => new Date(now) })
+  const app = createApp({ verify: verifyReceiptV2, attachmentHashOf, trusted, now: () => new Date(now) })
   const server = app.listen(0)
   try {
     const { port } = server.address() as AddressInfo
@@ -44,19 +44,37 @@ describe('server.js /v1/verify', () => {
     expect(r.json.valid).toBe(false)
   })
 
-  it('rejects the legacy self-keyed receipt format', async () => {
+  it('rejects the legacy self-keyed receipt format and format 1', async () => {
     const legacy = { receiptId: 'x', publicKey: 'aa', signature: 'bb', status: 'approved', version: '1.6' }
-    const r = await call(trusted, good.now, { receipt: legacy, expected: good.expected_action })
-    expect(r.status).toBe(400)
-    expect(r.json.reason).toBe('unsupported_receipt_format')
+    for (const receipt of [legacy, { ...good.receipt, version: '1' }]) {
+      const r = await call(trusted, good.now, { receipt, expected: good.expected_action })
+      expect(r.status).toBe(400)
+      expect(r.json.reason).toBe('unsupported_receipt_format')
+    }
   })
 
-  it('computes the payload hash itself when given the payload', async () => {
-    const payload = { to: 'alice@example.com', subject: 'Q3 report', body_sha: 'x' }
-    const e = { agent_id: 'agent:mail-bot', type: 'send_email', resource: 'mailto:alice@example.com', payload }
+  it('computes the fingerprint itself when given the attachment', async () => {
+    const attachment = data.attachment_vectors.accept[0].attachment
+    const { payload_hash, ...rest } = good.expected_action
+    const e = { ...rest, attachment }
     expect((await call(trusted, good.now, { receipt: good.receipt, expected: e })).json.valid).toBe(true)
-    const changed = { ...e, payload: { ...payload, to: 'mallory@example.com' } }
+    const changed = { ...e, attachment: { ...attachment, payload: { ...attachment.payload, to: 'mallory@example.com' } } }
     expect((await call(trusted, good.now, { receipt: good.receipt, expected: changed })).json.code).toBe('CONTEXT_MISMATCH')
+    const noSalt = { ...e, attachment: { payload: attachment.payload } }
+    const r = await call(trusted, good.now, { receipt: good.receipt, expected: noSalt })
+    expect(r.status).toBe(400)
+    expect(r.json.reason).toBe('bad_attachment')
+    const both = await call(trusted, good.now, { receipt: good.receipt, expected: { ...e, payload_hash } })
+    expect(both.json.reason).toBe('give_attachment_or_payload_hash_not_both')
+  })
+
+  it('needs the audience the receipt is for, and refuses a different one', async () => {
+    const { audience, ...rest } = good.expected_action
+    const missing = await call(trusted, good.now, { receipt: good.receipt, expected: rest })
+    expect(missing.status).toBe(400)
+    expect(missing.json.reason).toBe('missing_expected_action')
+    const other = await call(trusted, good.now, { receipt: good.receipt, expected: { ...rest, audience: 'other-gate.example' } })
+    expect(other.json.code).toBe('AUDIENCE_MISMATCH')
   })
 
   it('answers 400 on malformed JSON', async () => {

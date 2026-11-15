@@ -1,6 +1,7 @@
-import { type KeyRecord } from './verify';
+import { type Attachment, type KeyRecord } from './verify';
 export type ActionClass = 'compensable' | 'retriable' | 'irreversible';
 export interface ApprovalRequest {
+    audience: string;
     agent_id: string;
     agent_public_key: string;
     type: string;
@@ -10,12 +11,13 @@ export interface ApprovalRequest {
     scope_ref?: string;
     description?: string;
 }
-export interface ReceiptV1 {
-    version: '1';
+export interface ReceiptV2 {
+    version: '2';
     receipt_id: string;
     decision: 'approved' | 'denied';
     issued_at: string;
     expires_at: string;
+    audience: string;
     actor: {
         agent_id: string;
         public_key: string;
@@ -36,12 +38,22 @@ export interface ReceiptV1 {
     };
     nonce: string;
 }
+/** What an Approver returns and a Gate takes: the signed receipt plus the attachment it fingerprints.
+ *  The two travel together ("no travel without salt"): a Gate refuses a receipt without its attachment.
+ *  The bundle holds the payload in plain view. To show a receipt to an outsider, or to time-stamp it,
+ *  hand over `receiptOnly(bundle)`: the salted fingerprint reveals nothing about the payload. */
+export interface Bundle {
+    receipt: ReceiptV2;
+    attachment: Attachment;
+}
+/** The shareable half of a bundle: the signed receipt without the payload or the salt. */
+export declare const receiptOnly: (bundle: Bundle) => ReceiptV2;
 /** Shows `text` to the human and returns their decision. The Approver, not the agent, produces `text`. */
 export type Prompt = (text: string) => Promise<boolean>;
 /** Anything that can turn a request into a signed receipt. Level 1, 2 and 3 all implement this. */
 export interface Approver {
     readonly authority: string;
-    approve(req: ApprovalRequest): Promise<ReceiptV1>;
+    approve(req: ApprovalRequest): Promise<Bundle>;
 }
 /** ULID: 48-bit millisecond time + 80 random bits, Crockford base32, 26 chars. */
 export declare function newReceiptId(now: Date, rand?: (n: number) => Uint8Array): string;
@@ -68,6 +80,6 @@ export declare class LocalKeyApprover implements Approver {
     constructor(o: LocalKeyApproverOptions);
     /** The public record a verifier pins. Safe to share. */
     publicRecord(valid_from: string, valid_until: string): KeyRecord;
-    approve(req: ApprovalRequest): Promise<ReceiptV1>;
+    approve(req: ApprovalRequest): Promise<Bundle>;
 }
 //# sourceMappingURL=approver.d.ts.map

@@ -1,4 +1,4 @@
-# AT1C Gate Specification — conformance for receipt format 1 (DRAFT)
+# AT1C Gate Specification — conformance for receipt format 2 (DRAFT)
 
 Companion to `receipt.md` (what a gate checks) and `threat-model.md` (why). This file says **what a gate must control** for its checks to mean anything.
 
@@ -12,7 +12,7 @@ A receipt proves that a human approved an action. It cannot force an agent to as
 
 > **The capability to cause the side effect MUST be held by the gate, or by the target itself, and MUST NOT be readable or usable by the agent.**
 
-The agent submits a request (`agent_id`, action `type`, `resource`, `payload`) and a receipt. The gate verifies (`receipt.md` section 5) and, only then, performs the action with a credential the agent never sees. This is complete mediation by a reference monitor: always invoked, tamper-resistant, small enough to reason about. [standard]
+The agent submits a request (`agent_id`, action `type`, `resource`) and a bundle: the receipt with its attachment (`payload` and `salt`, `receipt.md` section 2.1). The gate verifies (`receipt.md` section 5) and, only then, performs the action with a credential the agent never sees. This is complete mediation by a reference monitor: always invoked, tamper-resistant, small enough to reason about. [standard]
 
 ## 3. Two classes of gate
 
@@ -27,7 +27,8 @@ The SDK's in-process `AT1C` client is an **advisory gate** today. [confirmed: it
 
 1. **Credential custody.** The credential for the side effect lives where the agent cannot read it: a different OS account, process or host, with file permissions or an access-control layer enforcing that. The gate MUST NOT hand the credential to the agent, even temporarily.
 2. **Complete mediation.** Every route the agent has to the side effect goes through the gate. Direct egress from the agent to the target MUST be blocked, or the target MUST reject any caller other than the gate (for example a token, client certificate or network rule that only the gate holds).
-3. **Execute what was verified.** The gate acts on the payload it hashed and verified, re-parsed from its canonical form, not on a second copy supplied by the agent. [standard, see `payload_hash`]
+3. **Execute what was verified.** The gate acts on the payload in the attachment it fingerprinted and verified, re-parsed from its canonical form, not on a second copy supplied by the agent. A receipt without its attachment is refused. [standard, see `payload_hash`]
+3a. **Own name.** The gate has one audience name, set in its own configuration and never taken from the caller. It refuses receipts made for any other name (`receipt.md` section 2.2).
 4. **Order.** Verify, then consume the nonce, then execute. A receipt is spent once verification succeeds, even if execution then fails; a retry needs a new receipt. (Idempotent retry using `receipt_id` is possible but not specified here.) [AT1C choice]
 5. **Fail closed.** If the nonce store, revocation list or pinned keys are unavailable, refuse.
 6. **Record.** Log the receipt and the outcome (executed, refused with code, or execution error).

@@ -1,5 +1,5 @@
 import { ml_dsa65 } from '@noble/post-quantum/ml-dsa.js'
-import { randomBytes } from '@noble/hashes/utils'
+import { randomBytes } from 'crypto'
 
 export interface KeyPair {
   secretKey: Uint8Array

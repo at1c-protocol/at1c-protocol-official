@@ -36,7 +36,7 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.Gate = exports.NO_REVOCATIONS = exports.FileNonceStore = exports.MemoryNonceStore = void 0;
 exports.fileRevocationList = fileRevocationList;
 exports.approveAndRun = approveAndRun;
-// AT1C Gate. Runs spec/receipt.md section 5 before any side effect (Rule 4, Verification Before Execution).
+// AT1C Gate (receipt format 2). Runs spec/receipt.md section 5 before any side effect (Rule 4, Verification Before Execution).
 // The Gate holds only PUBLIC keys. It never sees a secret key.
 const fs = __importStar(require("fs"));
 const path = __importStar(require("path"));
@@ -109,16 +109,29 @@ class Gate {
             throw new Error('AT1C Gate: `revoked` is required and must be a function returning a Set of receipt ids. ' +
                 'If this Gate deliberately has no revocations, pass `revoked: NO_REVOCATIONS`.');
         }
+        // Same reasoning: a Gate without its own name would accept receipts made for any gate.
+        if (typeof o.audience !== 'string' || o.audience.length === 0) {
+            throw new Error('AT1C Gate: `audience` is required: the name of this gate, which receipts must be made for.');
+        }
     }
-    /** Verify `receipt` against what is about to run, then run `fn`. Never runs `fn` on any failure.
-     *  `fn` receives the payload re-parsed from its canonical form, so what executes is exactly what was hashed.
+    /** Verify the bundle's receipt against what is about to run, then run `fn`. Never runs `fn` on any failure.
+     *  The payload comes from the bundle's attachment, never from the caller: the gate fingerprints the whole
+     *  attachment itself and the receipt must carry that fingerprint. `fn` receives the payload re-parsed from its
+     *  canonical form, so what executes is exactly what was hashed.
+     *  A receipt without its attachment is refused (NO_ATTACHMENT): no travel without salt.
      *  The nonce is consumed by a successful verification; if `fn` throws, the receipt is still spent (single use). */
-    async run(action, receipt, fn) {
+    async run(action, bundle, fn) {
+        const b = bundle;
+        if (b === null || typeof b !== 'object' || Array.isArray(b) || b.receipt === undefined) {
+            return { status: 'refused', code: 'SCHEMA' };
+        }
+        if (b.attachment === undefined || b.attachment === null)
+            return { status: 'refused', code: 'NO_ATTACHMENT' };
         let canonical;
         let expectedHash;
         try {
-            canonical = (0, verify_1.jcs)(action.payload);
-            expectedHash = (0, verify_1.payloadHashOf)(action.payload);
+            expectedHash = (0, verify_1.attachmentHashOf)(b.attachment); // throws on a malformed attachment or a value jcs() refuses
+            canonical = (0, verify_1.jcs)(b.attachment.payload);
         }
         catch {
             return { status: 'refused', code: 'SCHEMA' };
@@ -128,11 +141,17 @@ class Gate {
             const revoked = this.o.revoked();
             if (!(revoked instanceof Set))
                 throw new Error('revoked() must return a Set'); // fail closed below
-            verdict = (0, verify_1.verifyReceiptV1)(receipt, {
+            verdict = (0, verify_1.verifyReceiptV2)(b.receipt, {
                 now: (this.o.now ?? (() => new Date()))(),
                 pinned: this.o.pinned,
                 allowedAlgs: this.o.allowedAlgs,
-                expected: { agent_id: action.agent_id, type: action.type, resource: action.resource, payload_hash: expectedHash },
+                expected: {
+                    audience: this.o.audience, // this gate's own name, from its own settings
+                    agent_id: action.agent_id,
+                    type: action.type,
+                    resource: action.resource,
+                    payload_hash: expectedHash,
+                },
                 nonces: this.o.nonces,
                 revoked,
             });
@@ -149,8 +168,8 @@ exports.Gate = Gate;
 /** Convenience: ask the Approver, then let the Gate decide. `fn` runs only if the human approved and the
  *  receipt verifies. The agent never touches a key. */
 async function approveAndRun(approver, gate, req, fn) {
-    const receipt = await approver.approve(req);
-    const out = await gate.run({ agent_id: req.agent_id, type: req.type, resource: req.resource, payload: req.payload }, receipt, fn);
-    return { ...out, receipt };
+    const bundle = await approver.approve(req);
+    const out = await gate.run({ agent_id: req.agent_id, type: req.type, resource: req.resource }, bundle, fn);
+    return { ...out, bundle };
 }
 //# sourceMappingURL=gate.js.map

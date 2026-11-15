@@ -14,7 +14,7 @@ def agent_id_for(pub_b64u):
     return "agent:" + hashlib.sha256(unb64u(pub_b64u)).hexdigest()[:32]
 
 def signing_input(cert):
-    c = copy.deepcopy(cert); c.pop("signature", None); return jcs(c)
+    c = copy.deepcopy(cert); c.pop("signature", None); return jcs(c).encode()  # at1c_ref.jcs returns text
 
 def schema_ok(c):
     try:

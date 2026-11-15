@@ -1,6 +1,9 @@
-// AT1C verify endpoint (receipt format v1; see spec/receipt.md and spec/keys.md).
-// "valid: true" means: signed by a key in THIS server's trusted-keys file, inside its validity window,
-// unexpired, and matching the action the caller says it is about to run.
+// AT1C verify endpoint (receipt format 2; see spec/receipt.md and spec/keys.md).
+// "valid: true" means: signed under the receipt label by a key in THIS server's trusted-keys file, inside its
+// validity window, unexpired, made for the audience the caller names, and matching the action the caller says
+// it is about to run. This endpoint is a second opinion for a gate: it is not itself the audience.
+// The caller may send the attachment ({ payload, salt }) or only its fingerprint (payload_hash), so the
+// payload never has to leave the caller.
 // It does NOT consume nonces or check revocation: those belong to the gate that executes the action.
 const express = require('express')
 const fs = require('fs')
@@ -18,12 +21,12 @@ function loadTrusted(file) {
 
 const isStr = (x) => typeof x === 'string' && x.length > 0
 
-function createApp({ verify, payloadHashOf, trusted, now = () => new Date() }) {
+function createApp({ verify, attachmentHashOf, trusted, now = () => new Date() }) {
   const app = express()
   app.use(express.json({ limit: '64kb' }))
 
   app.get('/', (req, res) => res.sendFile(path.join(__dirname, 'index.html')))
-  app.get('/health', (req, res) => res.json({ status: 'ok', service: 'AT1C Verify Endpoint', receipt_format: '1' }))
+  app.get('/health', (req, res) => res.json({ status: 'ok', service: 'AT1C Verify Endpoint', receipt_format: '2' }))
 
   app.post('/v1/verify', (req, res) => {
     if (!trusted) return res.status(503).json({ valid: false, reason: 'no_trusted_keys' }) // fail closed
@@ -31,24 +34,27 @@ function createApp({ verify, payloadHashOf, trusted, now = () => new Date() }) {
     if (!receipt || typeof receipt !== 'object' || Array.isArray(receipt)) {
       return res.status(400).json({ valid: false, reason: 'missing_receipt' })
     }
-    if (receipt.version !== '1') {
+    if (receipt.version !== '2') {
       return res.status(400).json({
         valid: false,
         reason: 'unsupported_receipt_format',
-        detail: 'Only receipt format 1 is accepted. Legacy receipts embed their own key and cannot be trusted.',
+        detail: 'Only receipt format 2 is accepted. Format 1 receipts carry no signing label, no audience and an unsalted payload hash.',
       })
     }
-    if (!expected || !isStr(expected.agent_id) || !isStr(expected.type) || !isStr(expected.resource)) {
+    if (
+      !expected || !isStr(expected.audience) || !isStr(expected.agent_id) || !isStr(expected.type) ||
+      !isStr(expected.resource)
+    ) {
       return res.status(400).json({ valid: false, reason: 'missing_expected_action' })
     }
     let payloadHash
     try {
-      if (expected.payload !== undefined && expected.payload_hash !== undefined) {
-        return res.status(400).json({ valid: false, reason: 'give_payload_or_payload_hash_not_both' })
+      if (expected.attachment !== undefined && expected.payload_hash !== undefined) {
+        return res.status(400).json({ valid: false, reason: 'give_attachment_or_payload_hash_not_both' })
       }
-      payloadHash = expected.payload !== undefined ? payloadHashOf(expected.payload) : expected.payload_hash
+      payloadHash = expected.attachment !== undefined ? attachmentHashOf(expected.attachment) : expected.payload_hash
     } catch {
-      return res.status(400).json({ valid: false, reason: 'bad_payload' })
+      return res.status(400).json({ valid: false, reason: 'bad_attachment' })
     }
     if (!isStr(payloadHash)) return res.status(400).json({ valid: false, reason: 'missing_expected_action' })
 
@@ -56,7 +62,13 @@ function createApp({ verify, payloadHashOf, trusted, now = () => new Date() }) {
       now: now(),
       pinned: trusted.keys,
       allowedAlgs: trusted.allowed_algs,
-      expected: { agent_id: expected.agent_id, type: expected.type, resource: expected.resource, payload_hash: payloadHash },
+      expected: {
+        audience: expected.audience,
+        agent_id: expected.agent_id,
+        type: expected.type,
+        resource: expected.resource,
+        payload_hash: payloadHash,
+      },
       nonces: { checkAndRecord: () => true }, // peek only: never burn a nonce from a public endpoint
       revoked: new Set(),
     })
@@ -76,7 +88,7 @@ if (require.main === module || typeof PhusionPassenger !== 'undefined') {
   const trustedFile = process.env.AT1C_TRUSTED_KEYS || path.join(__dirname, 'trusted-keys.json')
   const trusted = loadTrusted(trustedFile)
   if (!trusted) console.error(`WARNING: no valid trusted keys at ${trustedFile}. /v1/verify will answer 503 until you add one.`)
-  const app = createApp({ verify: sdk.verifyReceiptV1, payloadHashOf: sdk.payloadHashOf, trusted })
+  const app = createApp({ verify: sdk.verifyReceiptV2, attachmentHashOf: sdk.attachmentHashOf, trusted })
   const PORT = process.env.PORT || 3000
   app.listen(PORT, () => console.log(`AT1C verify endpoint running on port ${PORT}`))
 }

@@ -1,6 +1,6 @@
 /**
  * AT1C Protocol SDK
- * The Human Authorisation Layer — receipt format 1
+ * The Human Authorisation Layer — receipt format 2
  *
  * No action without consent. No consent without proof.
  *
@@ -8,7 +8,7 @@
  * ```typescript
  * import { AT1C } from '@at1c/sdk'
  *
- * const at1c = new AT1C({ authority: 'did:web:example.com#user-1' })
+ * const at1c = new AT1C({ authority: 'did:web:example.com#user-1', audience: 'gate.example.com' })
  *
  * const result = await at1c.enforce(
  *   {
@@ -33,9 +33,9 @@
 export { AT1C, terminalPrompt, sanitiseAuthority } from './src/client'
 export type { AT1COptions, EnforceConfig, EnforceResult } from './src/client'
 
-// ── Approver and Gate (receipt format 1) ──────────────────────────────────────
-export { LocalKeyApprover, renderRequest, newReceiptId } from './src/approver'
-export type { Approver, ApprovalRequest, ReceiptV1, ActionClass, Prompt } from './src/approver'
+// ── Approver and Gate (receipt format 2) ──────────────────────────────────────
+export { LocalKeyApprover, renderRequest, newReceiptId, receiptOnly } from './src/approver'
+export type { Approver, ApprovalRequest, ReceiptV2, Bundle, ActionClass, Prompt } from './src/approver'
 export { Gate, FileNonceStore, MemoryNonceStore, approveAndRun, NO_REVOCATIONS, fileRevocationList } from './src/gate'
 export type { GateOptions, GateAction, GateResult } from './src/gate'
 
@@ -56,19 +56,17 @@ export {
   getPublicKeyFromFile,
 } from './src/keys'
 
-// ── Types — everything a consumer needs to type their integration ─────────────
-export type { ApprovalReceipt } from './src/types'
-
 export type { KeyPair } from './src/crypto'
 
 export type { StoredKeyPair } from './src/keys'
 
-// ── Verification (format 1) ───────────────────────────────────────────────────
-export { verifyReceiptV1, jcs, payloadHashOf } from './src/verify'
+// ── Verification (format 2; format 1 receipts are refused) ────────────────────
+export { verifyReceiptV2, jcs, attachmentHashOf, RECEIPT_CONTEXT, IDENTITY_LOG_CONTEXT } from './src/verify'
 export type {
   VerifyCode,
   KeyRecord,
   ExpectedAction,
+  Attachment,
   NonceStore,
   VerifyContext,
 } from './src/verify'

@@ -1,9 +1,12 @@
 import { describe, it, expect } from 'vitest'
-import { jcs, payloadHashOf } from '../src/verify'
+import { jcs, attachmentHashOf } from '../src/verify'
+
+const SALT = 'A'.repeat(43)
+const hashOf = (payload: unknown) => attachmentHashOf({ payload, salt: SALT })
 
 describe('jcs refuses values that are not plain data', () => {
   it('refuses a Date', () => {
-    expect(() => payloadHashOf({ when: new Date(0) })).toThrow('only plain objects')
+    expect(() => hashOf({ when: new Date(0) })).toThrow('only plain objects')
   })
   it('refuses a Map', () => {
     expect(() => jcs({ m: new Map([['a', 1]]) })).toThrow('only plain objects')
@@ -25,7 +28,7 @@ describe('jcs refuses values that are not plain data', () => {
   })
   it('still accepts plain data, and key order does not matter', () => {
     expect(jcs({ b: 1, a: [true, null, 'x'] })).toBe('{"a":[true,null,"x"],"b":1}')
-    expect(payloadHashOf({ a: 1, b: 2 })).toBe(payloadHashOf({ b: 2, a: 1 }))
+    expect(hashOf({ a: 1, b: 2 })).toBe(hashOf({ b: 2, a: 1 }))
   })
   it('accepts an object with no prototype', () => {
     const o = Object.create(null)

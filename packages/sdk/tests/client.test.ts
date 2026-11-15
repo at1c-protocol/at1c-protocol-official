@@ -28,7 +28,7 @@ function env(over: { prompt?: (t: string) => Promise<boolean>; policies?: string
   const shown: string[] = []
   const prompt = over.prompt ?? (async (t: string) => { shown.push(t); return true })
   const opts = {
-    authority: AUTH, keyFile, trustedKeysFile, policiesFile,
+    authority: AUTH, audience: 'gate.test.example', keyFile, trustedKeysFile, policiesFile,
     receiptsFile: path.join(dir, 'receipts.json'), nonceDir: path.join(dir, 'nonces'), prompt, now,
   }
   return { dir, opts, shown }
@@ -40,7 +40,7 @@ const cfg = (over: object = {}) => ({
 })
 
 describe('AT1C client', () => {
-  it('approved: runs fn with the exact payload, saves the receipt', async () => {
+  it('approved: runs fn with the exact payload, saves the bundle (receipt and attachment together)', async () => {
     const e = env()
     const at1c = new AT1C(e.opts)
     let got: any
@@ -49,8 +49,15 @@ describe('AT1C client', () => {
     expect(got).toEqual({ to: 'alice@example.com', body: 'hi' })
     const saved = JSON.parse(fs.readFileSync(e.opts.receiptsFile, 'utf-8'))
     expect(saved.length).toBe(1)
-    expect(saved[0].decision).toBe('approved')
+    expect(saved[0].receipt.decision).toBe('approved')
+    expect(saved[0].receipt.version).toBe('2')
+    expect(saved[0].receipt.audience).toBe('gate.test.example')
+    expect(saved[0].attachment.payload).toEqual({ to: 'alice@example.com', body: 'hi' })
+    expect(saved[0].attachment.salt).toMatch(/^[A-Za-z0-9_-]{43}$/)
     expect(at1c.getApprovalLog().length).toBe(1)
+    expect(JSON.stringify(at1c.getApprovalLog()[0])).not.toContain('alice@example.com":') // receipts only: no payload
+    expect(at1c.getBundles()[0].attachment.payload).toEqual({ to: 'alice@example.com', body: 'hi' })
+    if (out.status === 'approved') expect(out.bundle.receipt.receipt_id).toBe(out.receipt.receipt_id)
   })
 
   it('human says no: denied, fn never runs, the denial is still saved', async () => {
@@ -60,7 +67,7 @@ describe('AT1C client', () => {
     const out = await at1c.enforce(cfg(), () => { ran = true })
     expect(out).toMatchObject({ status: 'denied', reason: 'user_rejected' })
     expect(ran).toBe(false)
-    expect(JSON.parse(fs.readFileSync(e.opts.receiptsFile, 'utf-8'))[0].decision).toBe('denied')
+    expect(JSON.parse(fs.readFileSync(e.opts.receiptsFile, 'utf-8'))[0].receipt.decision).toBe('denied')
   })
 
   it('deny policy: refused without ever asking the human', async () => {
@@ -101,6 +108,12 @@ describe('AT1C client', () => {
   it('refuses when the key file does not match the pinned key', () => {
     const e = env({ trustedSeed: 9 })
     expect(() => new AT1C(e.opts)).toThrow('does not match')
+  })
+
+  it('refuses to start without an audience name', () => {
+    const e = env()
+    expect(() => new AT1C({ ...e.opts, audience: '' })).toThrow('audience')
+    expect(() => new AT1C({ ...e.opts, audience: undefined } as any)).toThrow('audience')
   })
 
   it('refuses to start with no trusted-keys file', () => {

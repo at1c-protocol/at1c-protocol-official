@@ -1,4 +1,4 @@
-# AT1C Threat Model — receipt format 1 (DRAFT)
+# AT1C Threat Model — receipt format 2 (DRAFT)
 
 **Status:** draft, not externally reviewed. Companion to `receipt.md`, `keys.md`, `agent-certificate.md`, `gate.md`. Where a threat is not covered it says so; nothing here is rounded up to "secure".
 
@@ -76,17 +76,17 @@ Status: **COVERED** (mitigated and tested), **PARTIAL**, **OPEN**.
 | T6 | Tampering with a signed receipt | 3 | JCS (RFC 8785) over everything except the signature [standard]. Tamper vectors [tested]. | COVERED |
 | T7 | Display deception: human shown something other than what is signed | 2, 3 | Approver renders the text itself; agent strings go through `JSON.stringify` (escapes control characters, stops fake lines); `display_digest` proves what was shown; agent description is labelled "unverified" [tested]. **Gaps:** lookalike and bidirectional Unicode not filtered; payloads over 2000 characters show only a hash, so the human is approving blind. | PARTIAL |
 | T8 | Approval fatigue, rubber-stamping | — | Not solvable by crypto. Partial aids: action `class` label, deny list, short TTL. No rate limiting or batching rules yet. | OPEN |
-| T9 | Algorithm confusion or downgrade | 3 | Format 1 allows only ML-DSA-65; `alg` is inside the signed bytes and allow-listed; unknown `version` rejected [tested]. | COVERED |
+| T9 | Algorithm confusion or downgrade | 3 | Format 2 allows only ML-DSA-65; `alg` is inside the signed bytes and allow-listed; unknown `version` rejected [tested]. | COVERED |
 | T10 | Clock manipulation (expiry and key validity) | 5 | Validity judged by the verifier's clock, never `issued_at`; TTL cap [standard]. If an attacker sets the gate clock (root), expiry and key windows fail with it. | PARTIAL (assumption A1) |
 | T11 | Approver key compromise | 1, 5 | `revoked: true` in the verifier's list rejects **all** of that key's receipts, including legitimate past ones; there is no "revoked since" time. No shared revocation feed, no recovery or multi-key scheme (`keys.md` gaps). No encrypted backup of today's keys yet. | PARTIAL |
 | T12 | Registry or certificate abuse | 1 | Registry keys are a **separate trust list** from approver keys; certificate permissions are a ceiling, never a grant; `type` field gives domain separation from receipts [tested]. **Gap:** no proof of possession at registration, so someone could register another party's public key. Single registry signer. | PARTIAL |
 | T13 | Denial of service via the nonce store or revocation list | 4 | **Fails closed** by design: if either is unavailable the gate refuses [tested]. This trades availability for safety [AT1C choice]. Garbage receipts cannot burn nonces (nonce is last). | COVERED (by design) |
 | T14 | Audit log tampering or deletion | — | Every receipt is signed, so entries cannot be forged, but `receipts.json` is a plain file: entries can be deleted or edited, and it is not hash-chained. Corrupt files are never overwritten. Anchoring is an optional adapter, not part of verification. | PARTIAL |
-| T15 | Stolen receipt presented by another caller | 2, 4 | Bound to `agent_id` as a string only; `actor.public_key` is informational in format 1, so the agent does not prove it is the named agent. Single use and short expiry limit the window. Future: the agent signs the request. | OPEN |
+| T15 | Stolen receipt presented by another caller | 2, 4 | Bound to `agent_id` as a string only; `actor.public_key` is informational in format 2 (a receipt is also bound to one named gate by `audience`), so the agent does not prove it is the named agent. Single use and short expiry limit the window. Future: the agent signs the request. | OPEN |
 | T16 | Mosaic attack: many small approved actions add up to a harmful one | 1 | A receipt authorises one action. Spend caps and "N per day" need verifier-side state in the scope; aggregation across sessions is unsolved (`receipt.md` section 7). | OPEN |
 | T17 | Secret key at rest | 1 | Seed in a mode-600 JSON file, unencrypted; client refuses a group/world-readable file [tested]. No passphrase, no hardware. | PARTIAL |
 | T18 | Vendor or platform capture (attestation as a condition of acceptance) | — | Receipt verification needs only the pinned public key; attestation is not a dependency. Rule written in `gate.md` section 8: no gate may require attestation; optional enrolment-time evidence only; key storage (software, token, phone) is not a ground for refusal. An operator can still impose its own enrolment policy; the protocol cannot prevent that. | PARTIAL (rule written; operator policy not preventable) |
-| T19 | Cross-use between receipts and certificates | 3 | Certificates carry `type: "agent_certificate"`; receipts have no `type`; separate key lists [tested]. | COVERED |
+| T19 | Cross-use between receipts and certificates | 3 | Certificates carry `type: "agent_certificate"`; receipts have no `type` and, from format 2, are signed under the context label `AT1C/receipt/v2` (certificates are still unlabelled); separate key lists [tested]. | COVERED |
 | T20 | Supply chain (npm dependencies, build output in Git) | — | One crypto dependency (`@noble/post-quantum`). `dist/` is tracked in Git though it is build output. Lockfile and audit status not reviewed here. | OPEN |
 
 ## 6. Prioritised next mitigations (recommendation, in order)
