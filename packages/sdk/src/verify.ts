@@ -56,7 +56,9 @@ export function jcs(v: unknown): string {
       if (!Number.isSafeInteger(v)) throw new Error('floats and unsafe integers are not allowed')
       return String(v)
     case 'object': {
-      if (Array.isArray(v)) return '[' + v.map(jcs).join(',') + ']'
+      if (Array.isArray(v)) return '[' + Array.from(v, (x) => jcs(x)).join(',') + ']'
+      const proto = Object.getPrototypeOf(v)
+      if (proto !== Object.prototype && proto !== null) throw new Error('only plain objects are allowed')
       const o = v as Record<string, unknown>
       const keys = Object.keys(o).filter((k) => o[k] !== undefined).sort()
       return '{' + keys.map((k) => JSON.stringify(k) + ':' + jcs(o[k])).join(',') + '}'

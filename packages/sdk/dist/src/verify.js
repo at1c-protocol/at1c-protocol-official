@@ -27,7 +27,10 @@ function jcs(v) {
             return String(v);
         case 'object': {
             if (Array.isArray(v))
-                return '[' + v.map(jcs).join(',') + ']';
+                return '[' + Array.from(v, (x) => jcs(x)).join(',') + ']';
+            const proto = Object.getPrototypeOf(v);
+            if (proto !== Object.prototype && proto !== null)
+                throw new Error('only plain objects are allowed');
             const o = v;
             const keys = Object.keys(o).filter((k) => o[k] !== undefined).sort();
             return '{' + keys.map((k) => JSON.stringify(k) + ':' + jcs(o[k])).join(',') + '}';
