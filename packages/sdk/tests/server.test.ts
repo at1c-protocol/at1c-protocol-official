@@ -1,5 +1,5 @@
 // Exercises server.js over real HTTP using the conformance vectors, with a fixed clock.
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import * as fs from 'fs'
 import * as path from 'path'
 import type { AddressInfo } from 'net'
@@ -9,8 +9,8 @@ import { createApp } from '../../../server.js'
 
 const data = JSON.parse(fs.readFileSync(path.resolve(__dirname, '../../../spec/test-vectors/receipt-v2.json'), 'utf-8'))
 
-async function call(trusted: any, now: string, body: any, raw?: string) {
-  const app = createApp({ verify: verifyReceiptV2, attachmentHashOf, trusted, now: () => new Date(now) })
+async function call(trusted: any, now: string, body: any, raw?: string, verify: any = verifyReceiptV2) {
+  const app = createApp({ verify, attachmentHashOf, trusted, now: () => new Date(now) })
   const server = app.listen(0)
   try {
     const { port } = server.address() as AddressInfo
@@ -80,5 +80,22 @@ describe('server.js /v1/verify', () => {
   it('answers 400 on malformed JSON', async () => {
     const r = await call(trusted, good.now, null, '{not json')
     expect(r.status).toBe(400)
+    expect(r.json.reason).toBe('malformed_json')
+  })
+
+  it('refuses to start without the format 2 verifier functions', () => {
+    expect(() => createApp({ verify: undefined, attachmentHashOf, trusted })).toThrow(/Refusing to start/)
+    expect(() => createApp({ verify: verifyReceiptV2, attachmentHashOf: undefined, trusted })).toThrow(/Refusing to start/)
+  })
+
+  it('answers 500 internal_error, never malformed_json, when the verifier itself breaks', async () => {
+    const log = vi.spyOn(console, 'error').mockImplementation(() => {})
+    try {
+      const broken = () => { throw new Error('boom') }
+      const r = await call(trusted, good.now, { receipt: good.receipt, expected: good.expected_action }, undefined, broken)
+      expect(r.status).toBe(500)
+      expect(r.json).toEqual({ valid: false, reason: 'internal_error' })
+      expect(log).toHaveBeenCalled()
+    } finally { log.mockRestore() }
   })
 })

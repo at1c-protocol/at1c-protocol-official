@@ -22,6 +22,11 @@ function loadTrusted(file) {
 const isStr = (x) => typeof x === 'string' && x.length > 0
 
 function createApp({ verify, attachmentHashOf, trusted, now = () => new Date() }) {
+  // Refuse to start without the format 2 verifier. An old or misplaced verify.js must stop the server,
+  // not leave it running and answering every request with an error (seen on the live server, 15 Nov 2026).
+  if (typeof verify !== 'function' || typeof attachmentHashOf !== 'function') {
+    throw new Error('AT1C verify endpoint: verifyReceiptV2 and attachmentHashOf are required. Refusing to start.')
+  }
   const app = express()
   app.use(express.json({ limit: '64kb' }))
 
@@ -75,8 +80,18 @@ function createApp({ verify, attachmentHashOf, trusted, now = () => new Date() }
     return res.status(200).json({ valid: result.ok, code: result.code, replay_checked: false, revocation_checked: false })
   })
 
-  // eslint-disable-next-line no-unused-vars
-  app.use((err, req, res, next) => res.status(400).json({ valid: false, reason: 'malformed_json' }))
+  app.use((err, req, res, next) => {
+    if (res.headersSent) return next(err)
+    // The caller's fault (the JSON body parser says so): unreadable JSON, body too large, and so on.
+    const status = err && (err.status || err.statusCode)
+    if (Number.isInteger(status) && status >= 400 && status < 500) {
+      const reason = err.type === 'entity.parse.failed' ? 'malformed_json' : 'bad_request'
+      return res.status(status).json({ valid: false, reason })
+    }
+    // Anything else is this server's fault. Say so plainly, so a broken deploy cannot pass for a bad request.
+    console.error('AT1C verify endpoint internal error:', (err && err.stack) || err)
+    return res.status(500).json({ valid: false, reason: 'internal_error' })
+  })
   return app
 }
 
@@ -84,7 +99,11 @@ module.exports = { createApp, loadTrusted }
 
 if (require.main === module || typeof PhusionPassenger !== 'undefined') {
   // Build first: cd packages/sdk && npx tsc -p tsconfig.sdk.json
-  const sdk = require(process.env.AT1C_SDK_VERIFY || './packages/sdk/dist/src/verify')
+  const sdkFile = process.env.AT1C_SDK_VERIFY || './packages/sdk/dist/src/verify'
+  const sdk = require(sdkFile)
+  if (typeof sdk.verifyReceiptV2 !== 'function' || typeof sdk.attachmentHashOf !== 'function') {
+    console.error(`FATAL: ${sdkFile} has no verifyReceiptV2 or attachmentHashOf. Is it the format 2 build?`)
+  }
   const trustedFile = process.env.AT1C_TRUSTED_KEYS || path.join(__dirname, 'trusted-keys.json')
   const trusted = loadTrusted(trustedFile)
   if (!trusted) console.error(`WARNING: no valid trusted keys at ${trustedFile}. /v1/verify will answer 503 until you add one.`)
