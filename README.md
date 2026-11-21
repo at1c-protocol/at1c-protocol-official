@@ -50,7 +50,9 @@ curl https://registry.at1c.com/health
 3. **Proof** — an ML-DSA-65 (FIPS 204) post-quantum signed receipt is generated, binding the user, action, timestamp, and nonce
 4. **Verify** — any system independently verifies the receipt before execution — no trust required
 
-Every receipt is single-use (nonce-based replay protection). Approval is scoped to the exact action requested — not transferable to any other action.## AT1C vs. The Others
+Every receipt is single-use (nonce-based replay protection). Approval is scoped to the exact action requested — not transferable to any other action.
+
+## AT1C vs. The Others
 
 The agentic AI space has several overlapping projects. Here is where AT1C differs from the closest ones:
 
@@ -64,7 +66,12 @@ The field is converging on a shared framing: treat autonomous agents as instrume
 
 ## Why it matters right now
 
-The EU AI Act begins enforcement in August
+AI agents now act on people's behalf: they send emails, move money and change records. When something goes wrong, the question is always the same: who approved this, and when?
+
+The EU AI Act's transparency duties (Article 50) have applied since 2 August 2026, and GDPR already holds the organisation that deploys an agent accountable for what it does. An AT1C receipt is a record anyone can check: which human approved which exact action, and when, signed with a key only that human holds.
+
+AT1C does not make a system compliant on its own. It gives you evidence that a human was in the loop.
+
 ## Known Limitations & Roadmap
 
 * Agent key custody: ✅ done (v1.1). Agents generate their own keypairs locally; the registry only ever receives and signs over the public key.
@@ -73,4 +80,4 @@ The EU AI Act begins enforcement in August
 * Browser-side keypair generation: 🔧 built into the registration page; it will be usable once the registration route is live.
 * Quantum resistance: ✅ the SDK signs and verifies receipts with ML-DSA-65 (NIST FIPS 204). Registry certificates are currently signed with Ed25519, which is not post-quantum; migration is planned.
 
-- **End-user passkey onboarding** (planned
+* End-user passkey onboarding: 🗓 planned.

@@ -2,7 +2,7 @@
   "name": "at1c-protocol-official",
   "version": "1.0.2",
   "private": true,
-  "description": "**AT1C Protocol**",
+  "description": "AT1C Protocol: signed, single-use receipts proving a human approved an AI agent's action",
   "main": "index.js",
   "directories": {
     "doc": "docs",
@@ -21,7 +21,7 @@
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "bugs": {
     "url": "https://github.com/at1c-protocol/at1c-protocol-official/issues"
   },
