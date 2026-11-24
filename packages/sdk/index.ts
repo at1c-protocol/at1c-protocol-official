@@ -74,3 +74,7 @@ export type {
 // ── Agent certificates ────────────────────────────────────────────────────────
 export { verifyAgentCertificateV1, agentIdFor } from './src/agentCert'
 export type { CertCode, CertContext } from './src/agentCert'
+
+// ── Repository receipts: the "finished files" payload (draft spec) ────────────
+export { makeRepoPayload, readRepoChanges, repoPayloadFor, RepoPayloadError, REPO_PAYLOAD_KIND, RECEIPTS_DIR } from './src/repo'
+export type { RepoPayload, RepoFileEntry, RepoChange, RepoErrorCode } from './src/repo'

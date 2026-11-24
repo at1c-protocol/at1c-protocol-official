@@ -30,7 +30,7 @@
  * mistakes, not a hijacked agent. See docs/STATUS.md.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.agentIdFor = exports.verifyAgentCertificateV1 = exports.IDENTITY_LOG_CONTEXT = exports.RECEIPT_CONTEXT = exports.attachmentHashOf = exports.jcs = exports.verifyReceiptV2 = exports.getPublicKeyFromFile = exports.loadOrCreateKeyPair = exports.loadKeyPair = exports.saveKeyPair = exports.hexToSecretKey = exports.hexToPublicKey = exports.secretKeyToHex = exports.publicKeyToHex = exports.generateKeyPair = exports.fileRevocationList = exports.NO_REVOCATIONS = exports.approveAndRun = exports.MemoryNonceStore = exports.FileNonceStore = exports.Gate = exports.receiptOnly = exports.newReceiptId = exports.renderRequest = exports.LocalKeyApprover = exports.sanitiseAuthority = exports.terminalPrompt = exports.AT1C = void 0;
+exports.RECEIPTS_DIR = exports.REPO_PAYLOAD_KIND = exports.RepoPayloadError = exports.repoPayloadFor = exports.readRepoChanges = exports.makeRepoPayload = exports.agentIdFor = exports.verifyAgentCertificateV1 = exports.IDENTITY_LOG_CONTEXT = exports.RECEIPT_CONTEXT = exports.attachmentHashOf = exports.jcs = exports.verifyReceiptV2 = exports.getPublicKeyFromFile = exports.loadOrCreateKeyPair = exports.loadKeyPair = exports.saveKeyPair = exports.hexToSecretKey = exports.hexToPublicKey = exports.secretKeyToHex = exports.publicKeyToHex = exports.generateKeyPair = exports.fileRevocationList = exports.NO_REVOCATIONS = exports.approveAndRun = exports.MemoryNonceStore = exports.FileNonceStore = exports.Gate = exports.receiptOnly = exports.newReceiptId = exports.renderRequest = exports.LocalKeyApprover = exports.sanitiseAuthority = exports.terminalPrompt = exports.AT1C = void 0;
 // ── Core client ───────────────────────────────────────────────────────────────
 var client_1 = require("./src/client");
 Object.defineProperty(exports, "AT1C", { enumerable: true, get: function () { return client_1.AT1C; } });
@@ -73,4 +73,12 @@ Object.defineProperty(exports, "IDENTITY_LOG_CONTEXT", { enumerable: true, get: 
 var agentCert_1 = require("./src/agentCert");
 Object.defineProperty(exports, "verifyAgentCertificateV1", { enumerable: true, get: function () { return agentCert_1.verifyAgentCertificateV1; } });
 Object.defineProperty(exports, "agentIdFor", { enumerable: true, get: function () { return agentCert_1.agentIdFor; } });
+// ── Repository receipts: the "finished files" payload (draft spec) ────────────
+var repo_1 = require("./src/repo");
+Object.defineProperty(exports, "makeRepoPayload", { enumerable: true, get: function () { return repo_1.makeRepoPayload; } });
+Object.defineProperty(exports, "readRepoChanges", { enumerable: true, get: function () { return repo_1.readRepoChanges; } });
+Object.defineProperty(exports, "repoPayloadFor", { enumerable: true, get: function () { return repo_1.repoPayloadFor; } });
+Object.defineProperty(exports, "RepoPayloadError", { enumerable: true, get: function () { return repo_1.RepoPayloadError; } });
+Object.defineProperty(exports, "REPO_PAYLOAD_KIND", { enumerable: true, get: function () { return repo_1.REPO_PAYLOAD_KIND; } });
+Object.defineProperty(exports, "RECEIPTS_DIR", { enumerable: true, get: function () { return repo_1.RECEIPTS_DIR; } });
 //# sourceMappingURL=index.js.map

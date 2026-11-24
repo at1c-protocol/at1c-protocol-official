@@ -42,4 +42,6 @@ export { verifyReceiptV2, jcs, attachmentHashOf, RECEIPT_CONTEXT, IDENTITY_LOG_C
 export type { VerifyCode, KeyRecord, ExpectedAction, Attachment, NonceStore, VerifyContext, } from './src/verify';
 export { verifyAgentCertificateV1, agentIdFor } from './src/agentCert';
 export type { CertCode, CertContext } from './src/agentCert';
+export { makeRepoPayload, readRepoChanges, repoPayloadFor, RepoPayloadError, REPO_PAYLOAD_KIND, RECEIPTS_DIR } from './src/repo';
+export type { RepoPayload, RepoFileEntry, RepoChange, RepoErrorCode } from './src/repo';
 //# sourceMappingURL=index.d.ts.map
