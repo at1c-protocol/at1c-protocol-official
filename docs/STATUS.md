@@ -1,74 +1,38 @@
-# AT1C status (read this first in any new chat)
+# AT1C: what works today, and what's coming
 
-Last updated: 13 Oct 2026. One-line focus: **AT1C is a human-signed, single-use, scope-bound approval receipt that a gate verifies before an action runs. Any chain is optional.**
+Last updated: 24 November 2026.
 
-## Source of truth
-- `spec/receipt.md` is the canonical receipt (format version `"1"`). If any other doc disagrees, it loses.
-- `spec/keys.md` is the key trust model (verifier-pinned keys, validity window judged by the verifier's clock).
-- `spec/agent-certificate.md` is the registry-signed agent certificate (format `"1"`). Permissions are a ceiling, never a grant.
-- `spec/gate.md` is the gate conformance draft: credential isolation, enforcing vs advisory gates. The SDK client is an ADVISORY gate.
-- `spec/threat-model.md` is the draft threat model (adversaries, 20 threats, status of each, prioritised next mitigations).
-- `spec/test-vectors/receipt-v1.json` (22) and `agent-certificate-v1.json` (21) are conformance vectors. Any verifier must reproduce every `expect`.
-- Reference verifiers: `packages/sdk/src/verify.ts` and `agentCert.ts` (SDK, tests in `packages/sdk/tests/`). The Python references (`tools/at1c_ref.py` etc.) are NOT committed yet, see problem 12.
-- Versioning: only the `version` field in a receipt is the protocol version. "v1.4", "v1.6", "v0.1" in old docs are document revisions.
+AT1C is a human-signed, single-use, scope-bound approval receipt that a gate checks before an AI agent's action runs. No receipt, no action. Any blockchain is optional.
 
-## Security levels (what protects against what)
-1. **Level 1, dev mode: DONE.** `AT1C` client = `LocalKeyApprover` + `Gate`. Approver key is in the same OS account as the agent. Stops mistakes and bugs, NOT a hijacked agent (it can read the key and self-approve).
-2. **Level 2, second OS account: NOT BUILT.** Approver daemon as a separate user, Unix socket, daemon renders what is signed, prompt on a channel the agent cannot answer. Design is inferred, not tested. Needs sudo, a systemd unit, SELinux contexts on Fedora.
-3. **Level 3, separate device: NOT BUILT.** Hardware ML-DSA-65 support is unverified: iOS 26 `SecureEnclave.MLDSA65` reported by ONE developer blog on one iPhone 15 Pro; Android 17 Keystore ML-DSA announced with no release date; hardware tokens unknown. TOTP is not suitable (shared secret, signs nothing about the action).
-- Premise to remember: the Gate protects only actions routed through it. An agent with a raw shell or direct network access can bypass it.
+## What works today
 
-## Done
-- Canonical spec, key model, 22 vectors; SDK verifier passes all of them.
-- FIPS 203 corrected to FIPS 204 (ML-DSA) in README, docs/README, scripts.
-- Old `verifyReceipt` (trusted the key inside the receipt) removed from the SDK in 2.0.0, with `signReceipt`, `buildReceipt` and the compliance demo (1 Nov).
-- Live `/v1/verify` on registry.at1c.com runs the new `server.js` (12 Oct).
-- Registry key rotated to ML-DSA-65 (registry-1); agent certificates v1 (spec, 21 vectors, `register-agent.js` rewritten) (13 Oct).
-- Level 1 `Approver` and `Gate` (`src/approver.ts`, `src/gate.ts`, durable atomic nonce store, fail closed) (13 Oct).
-- `client.ts` rewritten on Approver + Gate. BREAKING: `new AT1C({authority})`; `enforce()` needs `agentId`, `action`, `resource`, `payload`; `checkReceipt` removed; `getPublicKey` returns base64url. A broken `policies.json` is an error; an allow policy does not skip the human (13 Oct).
-- SDK README and `examples/receipts-viewer.ts` rewritten for format 1; unverified EU AI Act compliance claims removed (13 Oct).
-- Threat model draft (`spec/threat-model.md`) and gate spec (`spec/gate.md`, credential isolation) (13 Oct).
-- 112 SDK tests passing.
+- **Receipt format 2** (`spec/receipt.md`): post-quantum signatures (ML-DSA-65, FIPS 204) with their own signing label, a salted payload fingerprint, a named audience, single use, and expiry within 24 hours. Denials are signed receipts too.
+- **The SDK, `@at1c/sdk` 3.0** (`packages/sdk`): an Approver that signs, a Gate that verifies before anything runs, a durable single-use store that fails closed, and agent certificates. 176 tests, plus conformance vectors (`spec/test-vectors/`) checked against an independent Python reference (`tools/at1c_ref.py`).
+- **No device permission needed.** Acceptance depends only on the receipt and the keys the verifier chose to trust. No gate may require device attestation from Apple, Google or anyone else (`spec/gate.md` section 8). Any phone, laptop or operating system can take part.
+- **A public second opinion**: anyone can ask `registry.at1c.com` whether a receipt is valid. It checks; it never stores, and nothing depends on it.
+- **New: repository receipts, step 1.** The SDK can build the exact "finished files" fingerprint a human approves before a code merge (`packages/sdk/src/repo.ts`).
 
-## Known problems, in priority order
-1. DONE: live verify endpoint on new server.js. (Delete old cPanel files, see 11.)
-2. DONE: registry key rotation and agent certificates.
-3. DONE: `client.ts` rewrite. NOT YET RUN against a real key: smoke-test `examples/ai-agent-demo` with the mora-1 key (key file name pattern `<sanitised authority>.mldsa65.json` is inferred from the folder listing).
-4. Docs still on old schemas: `docs/protocol.md` ch.5, `docs/receipts.md` (retire), `docs/verification.md`, `docs/scopes.md`, `docs/signatures.md` (stub), whitepaper, plus the other docs that mention `AT1C`/`enforce`. Regenerate from `spec/`, one term list at a time, never a blanket replace.
-5. Licence mismatch: root `package.json` ISC, `packages/sdk/package.json` MIT, homepage and SDK README say MIT.
-6. Algorand / x402 should move out of headline docs into an adapters folder (optional chain adapter only).
-7. Legacy code retired (3 Nov 2026): root `verify.js`, `src/crypto/*` and `legacy/` removed; nothing else used them.
-8. Canonical acronym: SDK header and README now say "The Human Authorisation Layer"; whitepaper uses another expansion. Decide, then align. HRT credit missing from whitepaper references.
-9. Threat model DRAFT written: `spec/threat-model.md` (20 threats, prioritised mitigations; credential-isolation rule now written in `spec/gate.md`; next is an enforcing reference gate, item 17). Not yet written: reference gate demo, shared revocation feed, cumulative/budget limits (spec section 7 lists the gaps).
-10. DONE 14 Oct 2026: secrets tidy-up. AES256 gpg backups of mora-1, registry-1, registry-new and the npm recovery codes, each decrypted and compared; copies of all four `.gpg` files on a USB stick; plain `registry-new.json` and `npm-recovery-codes.txt` removed; `retired-registry-key.json` set to mode 600. The working plain keys (mora-1, registry-1) stay on disk because AT1C signs with them. Still the owner's job: passphrases live in a password manager, and a second off-machine copy of the `.gpg` files. The old retired key `retired-registry-key.json` has no backup (retired, low value).
-11. DONE 14 Oct 2026: old cPanel files `server.OLD-insecure.js` and `package.OLD.json` deleted (cPanel trash); `/health` still returns `receipt_format` 1. Leftover to tidy some day: `registry.deploy.tar.gz` (old upload archive) in the app folder.
-12. Python reference files never committed: `tools/at1c_ref.py`, `gen_vectors.py`, `run_vectors.py`. `tools/at1c_cert_ref.py` imports `at1c_ref` and cannot run from the repo; `spec/receipt.md` section 8 names them. Add them or fix the references.
-13. PART DONE 14 Oct 2026: the rule is in `spec/gate.md` section 8 (no gate may require attestation; optional enrolment evidence only). STILL OPEN: multiple keys per authority and key recovery (`keys.md` maps an authority to ONE key record, so a lost or compromised device is a lock-in and loss risk).
-14. Decide level 3 algorithm policy after testing a real device: stay ML-DSA-65 only (software key if no hardware), allow hybrid (classical + ML-DSA, both required), or classical-only (not recommended; breaks the post-quantum promise). Not decided.
-15. Unverified claims to confirm: `@at1c/sdk` is published on npm; whether `npm run demo -- --html/--pdf` scripts exist (removed from the README until confirmed); terminal display does not filter lookalike or bidirectional Unicode.
-16. Decide whether to untrack `packages/sdk/dist/` (build output tracked in Git; `tsc` rebuilds modify it). Never `git add` it; add explicit file paths only.
-17. Build an ENFORCING reference gate (a separate process that holds the credential; the agent has no path around it). Until then every gate in this repo is advisory. It only matters together with a level 2 or 3 approver (see `spec/gate.md` section 6).
+## Protection that grows with you
+
+AT1C is built as a ladder. The Gate stays the same at every level.
+
+1. **Level 1, dev mode: available now.** The Approver runs in the same OS account as the agent. It stops mistakes and bugs: nothing runs through the Gate without a receipt signed for that exact action and payload.
+2. **Level 2, separate OS account: coming.** The Approver moves to its own account, so the agent cannot reach the signing key.
+3. **Level 3, separate device: coming.** The Approver moves to a device of the user's choice.
+
+## Coming next
+
+- Repository receipts: the merge gate and an audit command for past receipts ("no human-signed receipt, no merge", for any git host).
+- An enforcing reference gate: a separate process that holds the credential, so the agent has no way around it.
+- Proof of time for higher-risk actions (Rule 4, planned).
+- Limits on repeated actions, an identity log, more than one key per person, and key recovery.
+
+## Good to know
+
+- Today every gate in this repo is advisory: it protects actions routed through it. Protection against a hijacked agent needs an enforcing gate together with level 2 or 3 (`spec/gate.md` sections 3 and 6). Until then, level 1 protects against mistakes, not a hijacked agent.
+- `spec/` is the source of truth. If another document disagrees with it, `spec/` wins. Some older documents in `docs/` still describe earlier formats and are being brought up to date.
 
 ## Run the checks
-- Spec vectors, Python: `python3 tools/run_vectors.py spec/test-vectors/receipt-v1.json` (needs `cryptography` >= 48; files not committed yet, see 12)
-- SDK + server tests: `cd packages/sdk && npx vitest run`
+
+- SDK tests: `cd packages/sdk && npm test`
 - Type check: `cd packages/sdk && npx tsc --noEmit -p tsconfig.sdk.json`
-
-## Deploy the verify endpoint (cPanel, registry.at1c.com)
-1. On your computer: `cd packages/sdk && npx tsc -p tsconfig.sdk.json` (writes `dist/`).
-2. Make your approver key: `node tools/new-authority-key.mjs "did:web:at1c.com#<yourname>-1"`. The secret goes to `~/at1c-secrets`. Copy the printed public record into a new `trusted-keys.json` (see `trusted-keys.example.json`).
-3. Upload `server.js`, `trusted-keys.json`, `packages/sdk/dist/` and its dependencies to the registry app. Keep the same relative paths, or set `AT1C_SDK_VERIFY` and `AT1C_TRUSTED_KEYS`. Restart the Node app. (Exact cPanel Node steps are not recorded here.)
-4. Check: `curl https://registry.at1c.com/health` shows `"receipt_format":"1"`, and a forged receipt returns `UNKNOWN_AUTHORITY`.
-
-## Working rules
-- One change at a time; branch, test, pull request, merge. The user reads slowly: one step per message, short, exact commands, say what output to paste back.
-- For gpg on this machine use `--pinentry-mode loopback` (the pop-up passphrase prompt times out unseen). Never delete a plain secret until its `.gpg` has been decrypted and compared with `cmp`.
-- Use single quotes around git commit messages (a `!` inside double quotes triggers bash history expansion).
-- Run the vectors before and after any change touching receipts or verification.
-- Mark claims as confirmed or inferred. Say what is a standard pattern and what is an AT1C judgment call.
-
-## Hosting notes
-- Live verify app: cPanel > Setup Node.js App; root /home/titanic1/registry.at1c.com, startup file server.js, Node 20.20.2, runs under Passenger.
-- Passenger loads server.js itself, so server.js must call listen when PhusionPassenger is defined (it does now). Without this the app hangs.
-- Live folder holds: server.js, trusted-keys.json, package.json, packages/sdk/dist/src/verify.js, agents.json, index.html.
-- Approver key authority did:web:at1c.com#mora-1; secret seed in ~/at1c-secrets (back it up, never commit). Valid until 12 Oct 2027.
