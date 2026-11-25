@@ -78,3 +78,5 @@ export type { CertCode, CertContext } from './src/agentCert'
 // ── Repository receipts: the "finished files" payload (draft spec) ────────────
 export { makeRepoPayload, readRepoChanges, repoPayloadFor, RepoPayloadError, REPO_PAYLOAD_KIND, RECEIPTS_DIR } from './src/repo'
 export type { RepoPayload, RepoFileEntry, RepoChange, RepoErrorCode } from './src/repo'
+export { mergeWithReceipt, repoApprovalRequest, receiptPathFor, REPO_MERGE_TYPE } from './src/repoGate'
+export type { RepoGateOptions, MergeRequest, RepoGateResult, RepoGateCode } from './src/repoGate'

@@ -30,7 +30,7 @@
  * mistakes, not a hijacked agent. See docs/STATUS.md.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.RECEIPTS_DIR = exports.REPO_PAYLOAD_KIND = exports.RepoPayloadError = exports.repoPayloadFor = exports.readRepoChanges = exports.makeRepoPayload = exports.agentIdFor = exports.verifyAgentCertificateV1 = exports.IDENTITY_LOG_CONTEXT = exports.RECEIPT_CONTEXT = exports.attachmentHashOf = exports.jcs = exports.verifyReceiptV2 = exports.getPublicKeyFromFile = exports.loadOrCreateKeyPair = exports.loadKeyPair = exports.saveKeyPair = exports.hexToSecretKey = exports.hexToPublicKey = exports.secretKeyToHex = exports.publicKeyToHex = exports.generateKeyPair = exports.fileRevocationList = exports.NO_REVOCATIONS = exports.approveAndRun = exports.MemoryNonceStore = exports.FileNonceStore = exports.Gate = exports.receiptOnly = exports.newReceiptId = exports.renderRequest = exports.LocalKeyApprover = exports.sanitiseAuthority = exports.terminalPrompt = exports.AT1C = void 0;
+exports.REPO_MERGE_TYPE = exports.receiptPathFor = exports.repoApprovalRequest = exports.mergeWithReceipt = exports.RECEIPTS_DIR = exports.REPO_PAYLOAD_KIND = exports.RepoPayloadError = exports.repoPayloadFor = exports.readRepoChanges = exports.makeRepoPayload = exports.agentIdFor = exports.verifyAgentCertificateV1 = exports.IDENTITY_LOG_CONTEXT = exports.RECEIPT_CONTEXT = exports.attachmentHashOf = exports.jcs = exports.verifyReceiptV2 = exports.getPublicKeyFromFile = exports.loadOrCreateKeyPair = exports.loadKeyPair = exports.saveKeyPair = exports.hexToSecretKey = exports.hexToPublicKey = exports.secretKeyToHex = exports.publicKeyToHex = exports.generateKeyPair = exports.fileRevocationList = exports.NO_REVOCATIONS = exports.approveAndRun = exports.MemoryNonceStore = exports.FileNonceStore = exports.Gate = exports.receiptOnly = exports.newReceiptId = exports.renderRequest = exports.LocalKeyApprover = exports.sanitiseAuthority = exports.terminalPrompt = exports.AT1C = void 0;
 // ── Core client ───────────────────────────────────────────────────────────────
 var client_1 = require("./src/client");
 Object.defineProperty(exports, "AT1C", { enumerable: true, get: function () { return client_1.AT1C; } });
@@ -81,4 +81,9 @@ Object.defineProperty(exports, "repoPayloadFor", { enumerable: true, get: functi
 Object.defineProperty(exports, "RepoPayloadError", { enumerable: true, get: function () { return repo_1.RepoPayloadError; } });
 Object.defineProperty(exports, "REPO_PAYLOAD_KIND", { enumerable: true, get: function () { return repo_1.REPO_PAYLOAD_KIND; } });
 Object.defineProperty(exports, "RECEIPTS_DIR", { enumerable: true, get: function () { return repo_1.RECEIPTS_DIR; } });
+var repoGate_1 = require("./src/repoGate");
+Object.defineProperty(exports, "mergeWithReceipt", { enumerable: true, get: function () { return repoGate_1.mergeWithReceipt; } });
+Object.defineProperty(exports, "repoApprovalRequest", { enumerable: true, get: function () { return repoGate_1.repoApprovalRequest; } });
+Object.defineProperty(exports, "receiptPathFor", { enumerable: true, get: function () { return repoGate_1.receiptPathFor; } });
+Object.defineProperty(exports, "REPO_MERGE_TYPE", { enumerable: true, get: function () { return repoGate_1.REPO_MERGE_TYPE; } });
 //# sourceMappingURL=index.js.map
