@@ -59,6 +59,7 @@ At level 1, everything the agent's user can write is attackable: the key file, `
 | E5 | Compromised host (root, malware) | Full control of the machine |
 | E6 | Compromised registry | Signs false agent certificates |
 | E7 | Platform vendor or relying party | Pushes device attestation as a condition of acceptance |
+| E8 | Platform AI agent on the approval device | An assistant built into the operating system, or an app with accessibility permission, that can read the screen and (inferred) act on it where the human approves |
 
 E5 is **out of scope at levels 1 and 2**. Level 3 narrows it.
 
@@ -88,6 +89,7 @@ Status: **COVERED** (mitigated and tested), **PARTIAL**, **OPEN**.
 | T18 | Vendor or platform capture (attestation as a condition of acceptance) | — | Receipt verification needs only the pinned public key; attestation is not a dependency. Rule written in `gate.md` section 8: no gate may require attestation; optional enrolment-time evidence only; key storage (software, token, phone) is not a ground for refusal. An operator can still impose its own enrolment policy; the protocol cannot prevent that. | PARTIAL (rule written; operator policy not preventable) |
 | T19 | Cross-use between receipts and certificates | 3 | Certificates carry `type: "agent_certificate"`; receipts have no `type` and, from format 2, are signed under the context label `AT1C/receipt/v2` (certificates are still unlabelled); separate key lists [tested]. | COVERED |
 | T20 | Supply chain (npm dependencies, build output in Git) | — | One crypto dependency (`@noble/post-quantum`). `dist/` is tracked in Git though it is build output. Lockfile and audit status not reviewed here. | OPEN |
+| T21 | OS-level agent approves for the human: an assistant built into the approval device's operating system, or an app with accessibility permission, reads the approval prompt and presses Approve | 1, 4 | Nothing in the protocol can detect it: a receipt signed this way is valid. A signature proves the key was used, not that a person pressed the button. Partial aids, not built: a physical act the screen cannot perform (a security-key touch, or a separate device with its own screen and button); approval screens that refuse screen capture where the platform allows it. Applies at level 3 too: a phone used as the separate device is exposed if its operating system runs such an agent. Source: Signal, 20 Nov 2026, on operating-system AI agents capturing app content [external report]; that such agents can also act, not only read, is [inferred]. | OPEN |
 
 ## 6. Prioritised next mitigations (recommendation, in order)
 
@@ -98,6 +100,7 @@ Status: **COVERED** (mitigated and tested), **PARTIAL**, **OPEN**.
 5. **Agent-signed request (T15)** and **proof of possession at registration (T12).**
 6. **Attestation rule (T18)** and multi-key/recovery design.
 7. **Audit log hash chain (T14)** and cumulative limits (T16).
+8. **Physical approval act (T21).** For level 3, prefer an approval step that needs a physical touch on hardware the agent cannot reach, over an on-screen button.
 
 ## 7. Out of scope
 
