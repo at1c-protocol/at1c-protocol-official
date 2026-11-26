@@ -7,6 +7,7 @@
 import { ml_dsa65 } from '@noble/post-quantum/ml-dsa.js'
 import { createHash, randomBytes } from 'crypto'
 import { jcs, attachmentHashOf, RECEIPT_CONTEXT, type Attachment, type KeyRecord } from './verify'
+import { REPO_MERGE_TYPE, isRepoPayload, renderRepoFiles } from './repoDisplay'
 
 export type ActionClass = 'compensable' | 'retriable' | 'irreversible'
 
@@ -103,13 +104,20 @@ export function newReceiptId(now: Date, rand: (n: number) => Uint8Array = random
 
 /** The exact text the human is shown. Agent-supplied strings go through JSON.stringify, which escapes
  *  control characters (e.g. ESC), so an agent cannot inject terminal escape codes or fake extra lines.
- *  Gap: lookalike and bidirectional Unicode are not filtered. */
+ *  A repo merge is shown as a readable file list (repoDisplay.ts); a merge too big to read throws, so the
+ *  human is never asked. Gap: lookalike Unicode is not filtered (bidirectional characters are, in file lists). */
 export function renderRequest(req: ApprovalRequest, payloadHash: string): string {
-  const canonical = jcs(req.payload)
-  const shown =
-    canonical.length <= MAX_DISPLAY_PAYLOAD
-      ? canonical
-      : `(too large to display, ${canonical.length} chars; hash only) ${payloadHash}`
+  let shown: string
+  if (req.type === REPO_MERGE_TYPE) {
+    if (!isRepoPayload(req.payload)) throw new Error('bad request: a repo.merge payload must be exactly the repository file list')
+    shown = renderRepoFiles(req.payload)
+  } else {
+    const canonical = jcs(req.payload)
+    shown =
+      canonical.length <= MAX_DISPLAY_PAYLOAD
+        ? canonical
+        : `(too large to display, ${canonical.length} chars; hash only) ${payloadHash}`
+  }
   const lines = [
     'AT1C approval request',
     `For gate: ${JSON.stringify(req.audience)}`,
@@ -190,7 +198,8 @@ export class LocalKeyApprover implements Approver {
     }
     const payloadHash = attachmentHashOf(attachment)
 
-    const text = renderRequest(req, payloadHash)
+    // Shown from the canonical copy that is signed, never from the caller's own object a second time.
+    const text = renderRequest({ ...req, payload: attachment.payload }, payloadHash)
     const approved = await this.prompt(text)
 
     const issued = this.now()

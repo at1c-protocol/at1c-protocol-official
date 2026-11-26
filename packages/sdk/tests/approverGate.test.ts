@@ -310,6 +310,37 @@ describe('What the human is shown', () => {
     expect(text).toContain('too large to display')
     expect(text).toContain(h)
   })
+
+  // Threat T7 fix (26 Nov 2026, cautious route): a repo merge is shown as a file list, never as a bare hash.
+  const repoReq = (k: number, extra: object = {}): ApprovalRequest => req({
+    type: 'repo.merge', class: 'compensable', resource: 'demo:main',
+    payload: {
+      kind: 'at1c.repo.files.v1', base: 'b'.repeat(40), deleted: [],
+      files: Array.from({ length: k }, (_, i) => ({ path: `src/file-${i}.ts`, mode: '100644', sha256: 'c'.repeat(64) })),
+      ...extra,
+    },
+  })
+
+  it('a repo merge of 40 files shows every file name, not a hash', async () => {
+    const { approver, shown } = setup(true)
+    await approver.approve(repoReq(40))
+    expect(shown[0]).not.toContain('too large to display')
+    expect(shown[0]).toContain('Added or changed: 40 files')
+    expect(shown[0]).toContain('"src/file-0.ts"')
+    expect(shown[0]).toContain('"src/file-39.ts"')
+  })
+
+  it('a repo merge of 101 files is refused before the human is asked: split it', async () => {
+    const { approver, shown } = setup(true)
+    await expect(approver.approve(repoReq(101))).rejects.toThrow(/split it into smaller changes/)
+    expect(shown.length).toBe(0)
+  })
+
+  it('a repo merge payload with an extra hidden field is refused before the human is asked', async () => {
+    const { approver, shown } = setup(true)
+    await expect(approver.approve(repoReq(1, { note: 'not shown' }))).rejects.toThrow(/repo.merge payload/)
+    expect(shown.length).toBe(0)
+  })
 })
 
 describe('Receipt ids and limits', () => {

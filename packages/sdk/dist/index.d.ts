@@ -45,5 +45,6 @@ export type { CertCode, CertContext } from './src/agentCert';
 export { makeRepoPayload, readRepoChanges, repoPayloadFor, RepoPayloadError, REPO_PAYLOAD_KIND, RECEIPTS_DIR } from './src/repo';
 export type { RepoPayload, RepoFileEntry, RepoChange, RepoErrorCode } from './src/repo';
 export { mergeWithReceipt, repoApprovalRequest, receiptPathFor, REPO_MERGE_TYPE } from './src/repoGate';
+export { renderRepoFiles, showPath, isRepoPayload, MAX_REPO_FILES, MAX_REPO_LIST_CHARS } from './src/repoDisplay';
 export type { RepoGateOptions, MergeRequest, RepoGateResult, RepoGateCode } from './src/repoGate';
 //# sourceMappingURL=index.d.ts.map

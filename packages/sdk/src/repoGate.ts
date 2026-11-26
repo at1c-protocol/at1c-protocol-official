@@ -13,8 +13,9 @@ import { jcs, type VerifyCode } from './verify'
 import type { Gate } from './gate'
 import type { ApprovalRequest } from './approver'
 import { makeRepoPayload, readRepoChanges, RepoPayloadError, RECEIPTS_DIR, type RepoErrorCode, type RepoPayload } from './repo'
+import { REPO_MERGE_TYPE, MAX_REPO_FILES } from './repoDisplay'
 
-export const REPO_MERGE_TYPE = 'repo.merge'
+export { REPO_MERGE_TYPE }
 const MAX_BUNDLE_BYTES = 4 * 1024 * 1024
 const RE_RECEIPT_FILE = /^at1c_[0-9A-HJKMNP-TV-Z]{26}\.json$/
 
@@ -32,6 +33,7 @@ export type RepoGateCode =
   | 'BAD_RECEIPT_FILE'
   | 'PAYLOAD_MISMATCH'
   | 'BRANCH_MOVED'
+  | 'TOO_MANY_FILES'
 
 export type RepoGateResult =
   | { status: 'merged'; receipt_id: string; from: string; to: string }
@@ -132,7 +134,14 @@ export async function mergeWithReceipt(o: RepoGateOptions, req: MergeRequest): P
     // 4. Rebuild the payload from git (receipts folder left out) and compare with what was signed.
     let ours: string
     try {
-      ours = jcs(makeRepoPayload(base, changes))
+      const payload = makeRepoPayload(base, changes)
+      // Second lock (owner decision 26 Nov, cautious route): even if some Approver let a too-big change through,
+      // this gate will not land it. Split the change instead.
+      const total = payload.files.length + payload.deleted.length
+      if (total > MAX_REPO_FILES) {
+        return refuse('TOO_MANY_FILES', `${total} files; at most ${MAX_REPO_FILES} per approval, split the change`)
+      }
+      ours = jcs(payload)
     } catch (e) {
       if (e instanceof RepoPayloadError) return refuse(e.code, e.message)
       throw e

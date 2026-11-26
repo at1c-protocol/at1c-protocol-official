@@ -2,8 +2,9 @@ import { type VerifyCode } from './verify';
 import type { Gate } from './gate';
 import type { ApprovalRequest } from './approver';
 import { type RepoErrorCode, type RepoPayload } from './repo';
-export declare const REPO_MERGE_TYPE = "repo.merge";
-export type RepoGateCode = VerifyCode | RepoErrorCode | 'GATE_ERROR' | 'NO_ATTACHMENT' | 'NOT_BARE' | 'BAD_BRANCH' | 'NOT_FAST_FORWARD' | 'NO_RECEIPT' | 'MORE_THAN_ONE_RECEIPT' | 'RECEIPT_CHANGED' | 'BAD_RECEIPT_FILE' | 'PAYLOAD_MISMATCH' | 'BRANCH_MOVED';
+import { REPO_MERGE_TYPE } from './repoDisplay';
+export { REPO_MERGE_TYPE };
+export type RepoGateCode = VerifyCode | RepoErrorCode | 'GATE_ERROR' | 'NO_ATTACHMENT' | 'NOT_BARE' | 'BAD_BRANCH' | 'NOT_FAST_FORWARD' | 'NO_RECEIPT' | 'MORE_THAN_ONE_RECEIPT' | 'RECEIPT_CHANGED' | 'BAD_RECEIPT_FILE' | 'PAYLOAD_MISMATCH' | 'BRANCH_MOVED' | 'TOO_MANY_FILES';
 export type RepoGateResult = {
     status: 'merged';
     receipt_id: string;

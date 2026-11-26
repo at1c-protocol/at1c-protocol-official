@@ -12,6 +12,7 @@ exports.renderRequest = renderRequest;
 const ml_dsa_js_1 = require("@noble/post-quantum/ml-dsa.js");
 const crypto_1 = require("crypto");
 const verify_1 = require("./verify");
+const repoDisplay_1 = require("./repoDisplay");
 /** The shareable half of a bundle: the signed receipt without the payload or the salt. */
 const receiptOnly = (bundle) => bundle.receipt;
 exports.receiptOnly = receiptOnly;
@@ -51,12 +52,22 @@ function newReceiptId(now, rand = crypto_1.randomBytes) {
 }
 /** The exact text the human is shown. Agent-supplied strings go through JSON.stringify, which escapes
  *  control characters (e.g. ESC), so an agent cannot inject terminal escape codes or fake extra lines.
- *  Gap: lookalike and bidirectional Unicode are not filtered. */
+ *  A repo merge is shown as a readable file list (repoDisplay.ts); a merge too big to read throws, so the
+ *  human is never asked. Gap: lookalike Unicode is not filtered (bidirectional characters are, in file lists). */
 function renderRequest(req, payloadHash) {
-    const canonical = (0, verify_1.jcs)(req.payload);
-    const shown = canonical.length <= MAX_DISPLAY_PAYLOAD
-        ? canonical
-        : `(too large to display, ${canonical.length} chars; hash only) ${payloadHash}`;
+    let shown;
+    if (req.type === repoDisplay_1.REPO_MERGE_TYPE) {
+        if (!(0, repoDisplay_1.isRepoPayload)(req.payload))
+            throw new Error('bad request: a repo.merge payload must be exactly the repository file list');
+        shown = (0, repoDisplay_1.renderRepoFiles)(req.payload);
+    }
+    else {
+        const canonical = (0, verify_1.jcs)(req.payload);
+        shown =
+            canonical.length <= MAX_DISPLAY_PAYLOAD
+                ? canonical
+                : `(too large to display, ${canonical.length} chars; hash only) ${payloadHash}`;
+    }
     const lines = [
         'AT1C approval request',
         `For gate: ${JSON.stringify(req.audience)}`,
@@ -130,7 +141,8 @@ class LocalKeyApprover {
             salt: Buffer.from(this.rand(32)).toString('base64url'),
         };
         const payloadHash = (0, verify_1.attachmentHashOf)(attachment);
-        const text = renderRequest(req, payloadHash);
+        // Shown from the canonical copy that is signed, never from the caller's own object a second time.
+        const text = renderRequest({ ...req, payload: attachment.payload }, payloadHash);
         const approved = await this.prompt(text);
         const issued = this.now();
         const action = {

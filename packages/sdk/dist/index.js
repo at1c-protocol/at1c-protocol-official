@@ -30,7 +30,7 @@
  * mistakes, not a hijacked agent. See docs/STATUS.md.
  */
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.REPO_MERGE_TYPE = exports.receiptPathFor = exports.repoApprovalRequest = exports.mergeWithReceipt = exports.RECEIPTS_DIR = exports.REPO_PAYLOAD_KIND = exports.RepoPayloadError = exports.repoPayloadFor = exports.readRepoChanges = exports.makeRepoPayload = exports.agentIdFor = exports.verifyAgentCertificateV1 = exports.IDENTITY_LOG_CONTEXT = exports.RECEIPT_CONTEXT = exports.attachmentHashOf = exports.jcs = exports.verifyReceiptV2 = exports.getPublicKeyFromFile = exports.loadOrCreateKeyPair = exports.loadKeyPair = exports.saveKeyPair = exports.hexToSecretKey = exports.hexToPublicKey = exports.secretKeyToHex = exports.publicKeyToHex = exports.generateKeyPair = exports.fileRevocationList = exports.NO_REVOCATIONS = exports.approveAndRun = exports.MemoryNonceStore = exports.FileNonceStore = exports.Gate = exports.receiptOnly = exports.newReceiptId = exports.renderRequest = exports.LocalKeyApprover = exports.sanitiseAuthority = exports.terminalPrompt = exports.AT1C = void 0;
+exports.MAX_REPO_LIST_CHARS = exports.MAX_REPO_FILES = exports.isRepoPayload = exports.showPath = exports.renderRepoFiles = exports.REPO_MERGE_TYPE = exports.receiptPathFor = exports.repoApprovalRequest = exports.mergeWithReceipt = exports.RECEIPTS_DIR = exports.REPO_PAYLOAD_KIND = exports.RepoPayloadError = exports.repoPayloadFor = exports.readRepoChanges = exports.makeRepoPayload = exports.agentIdFor = exports.verifyAgentCertificateV1 = exports.IDENTITY_LOG_CONTEXT = exports.RECEIPT_CONTEXT = exports.attachmentHashOf = exports.jcs = exports.verifyReceiptV2 = exports.getPublicKeyFromFile = exports.loadOrCreateKeyPair = exports.loadKeyPair = exports.saveKeyPair = exports.hexToSecretKey = exports.hexToPublicKey = exports.secretKeyToHex = exports.publicKeyToHex = exports.generateKeyPair = exports.fileRevocationList = exports.NO_REVOCATIONS = exports.approveAndRun = exports.MemoryNonceStore = exports.FileNonceStore = exports.Gate = exports.receiptOnly = exports.newReceiptId = exports.renderRequest = exports.LocalKeyApprover = exports.sanitiseAuthority = exports.terminalPrompt = exports.AT1C = void 0;
 // ── Core client ───────────────────────────────────────────────────────────────
 var client_1 = require("./src/client");
 Object.defineProperty(exports, "AT1C", { enumerable: true, get: function () { return client_1.AT1C; } });
@@ -86,4 +86,10 @@ Object.defineProperty(exports, "mergeWithReceipt", { enumerable: true, get: func
 Object.defineProperty(exports, "repoApprovalRequest", { enumerable: true, get: function () { return repoGate_1.repoApprovalRequest; } });
 Object.defineProperty(exports, "receiptPathFor", { enumerable: true, get: function () { return repoGate_1.receiptPathFor; } });
 Object.defineProperty(exports, "REPO_MERGE_TYPE", { enumerable: true, get: function () { return repoGate_1.REPO_MERGE_TYPE; } });
+var repoDisplay_1 = require("./src/repoDisplay");
+Object.defineProperty(exports, "renderRepoFiles", { enumerable: true, get: function () { return repoDisplay_1.renderRepoFiles; } });
+Object.defineProperty(exports, "showPath", { enumerable: true, get: function () { return repoDisplay_1.showPath; } });
+Object.defineProperty(exports, "isRepoPayload", { enumerable: true, get: function () { return repoDisplay_1.isRepoPayload; } });
+Object.defineProperty(exports, "MAX_REPO_FILES", { enumerable: true, get: function () { return repoDisplay_1.MAX_REPO_FILES; } });
+Object.defineProperty(exports, "MAX_REPO_LIST_CHARS", { enumerable: true, get: function () { return repoDisplay_1.MAX_REPO_LIST_CHARS; } });
 //# sourceMappingURL=index.js.map

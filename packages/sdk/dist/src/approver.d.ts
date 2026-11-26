@@ -59,7 +59,8 @@ export interface Approver {
 export declare function newReceiptId(now: Date, rand?: (n: number) => Uint8Array): string;
 /** The exact text the human is shown. Agent-supplied strings go through JSON.stringify, which escapes
  *  control characters (e.g. ESC), so an agent cannot inject terminal escape codes or fake extra lines.
- *  Gap: lookalike and bidirectional Unicode are not filtered. */
+ *  A repo merge is shown as a readable file list (repoDisplay.ts); a merge too big to read throws, so the
+ *  human is never asked. Gap: lookalike Unicode is not filtered (bidirectional characters are, in file lists). */
 export declare function renderRequest(req: ApprovalRequest, payloadHash: string): string;
 export interface LocalKeyApproverOptions {
     authority: string;

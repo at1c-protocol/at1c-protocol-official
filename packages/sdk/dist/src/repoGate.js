@@ -16,7 +16,8 @@ exports.repoApprovalRequest = repoApprovalRequest;
 const child_process_1 = require("child_process");
 const verify_1 = require("./verify");
 const repo_1 = require("./repo");
-exports.REPO_MERGE_TYPE = 'repo.merge';
+const repoDisplay_1 = require("./repoDisplay");
+Object.defineProperty(exports, "REPO_MERGE_TYPE", { enumerable: true, get: function () { return repoDisplay_1.REPO_MERGE_TYPE; } });
 const MAX_BUNDLE_BYTES = 4 * 1024 * 1024;
 const RE_RECEIPT_FILE = /^at1c_[0-9A-HJKMNP-TV-Z]{26}\.json$/;
 const refuse = (code, detail) => ({ status: 'refused', code, detail });
@@ -103,7 +104,14 @@ async function mergeWithReceipt(o, req) {
         // 4. Rebuild the payload from git (receipts folder left out) and compare with what was signed.
         let ours;
         try {
-            ours = (0, verify_1.jcs)((0, repo_1.makeRepoPayload)(base, changes));
+            const payload = (0, repo_1.makeRepoPayload)(base, changes);
+            // Second lock (owner decision 26 Nov, cautious route): even if some Approver let a too-big change through,
+            // this gate will not land it. Split the change instead.
+            const total = payload.files.length + payload.deleted.length;
+            if (total > repoDisplay_1.MAX_REPO_FILES) {
+                return refuse('TOO_MANY_FILES', `${total} files; at most ${repoDisplay_1.MAX_REPO_FILES} per approval, split the change`);
+            }
+            ours = (0, verify_1.jcs)(payload);
         }
         catch (e) {
             if (e instanceof repo_1.RepoPayloadError)
@@ -125,7 +133,7 @@ async function mergeWithReceipt(o, req) {
         //    revocation, single use). Only then is the branch moved, atomically: update-ref with the old value fails
         //    if anyone moved the branch in between.
         let moved = true;
-        const out = await o.gate.run({ agent_id: req.agent_id, type: exports.REPO_MERGE_TYPE, resource: `${o.repo}:${req.branch}` }, bundle, () => {
+        const out = await o.gate.run({ agent_id: req.agent_id, type: repoDisplay_1.REPO_MERGE_TYPE, resource: `${o.repo}:${req.branch}` }, bundle, () => {
             moved = gitOk(o.repoDir, ['update-ref', '-m', `at1c: ${bundle.receipt.receipt_id}`, ref, source, base]);
         });
         if (out.status === 'refused')
@@ -147,7 +155,7 @@ function repoApprovalRequest(o) {
         audience: o.audience,
         agent_id: o.agent_id,
         agent_public_key: o.agent_public_key,
-        type: exports.REPO_MERGE_TYPE,
+        type: repoDisplay_1.REPO_MERGE_TYPE,
         class: 'compensable', // a merge can be reverted; a verifier may demand more, never less
         resource: `${o.repo}:${o.branch}`,
         payload: o.payload,

@@ -213,4 +213,23 @@ describe('merge gate: no human-signed receipt, no merge', () => {
     out = await mergeWithReceipt({ repoDir: bare, repo: REPO, gate }, { branch: '--force', source: 'main', agent_id: AGENT })
     expect(out.status === 'refused' && out.code).toBe('BAD_BRANCH')
   })
+
+  it('second lock: refuses more than 100 files even if some approver let them through (TOO_MANY_FILES)', async () => {
+    const { opts } = setup()
+    const before = mainTip()
+    const b = `agent-${++n}`
+    run(work, 'fetch', '-q', 'origin')
+    run(work, 'checkout', '-q', '-B', b, 'origin/main')
+    for (let i = 0; i < 101; i++) write(`bulk/f${i}.txt`, `${i}\n`)
+    const workCommit = commit('bulk agent work')
+    const payload = repoPayloadFor(work, run(work, 'rev-parse', 'origin/main'), workCommit)
+    // A hand-made bundle: the gate must refuse on size alone, before it even looks at the signature.
+    const id = 'at1c_01M7HWR0FC12V5AR8G4ZAZWP81'
+    write(receiptPathFor(id), JSON.stringify({ receipt: { receipt_id: id }, attachment: { payload, salt: 'A'.repeat(43) } }) + '\n')
+    commit('at1c receipt')
+    run(work, 'push', '-q', 'origin', `${b}:refs/heads/${b}`)
+    const out = await mergeWithReceipt(opts, { branch: 'main', source: b, agent_id: AGENT })
+    expect(out.status === 'refused' && out.code).toBe('TOO_MANY_FILES')
+    expect(mainTip()).toBe(before)
+  })
 })
