@@ -250,7 +250,7 @@ The gate refuses, and never moves the branch, when there is no receipt (`NO_RECE
 - The gate only *enforces* if the agent has no other way to push to the branch. Run it on the host's own bare copy, as a user the agent is not (`spec/gate.md` sections 3 and 7).
 - You approve file names and a fingerprint of their contents. Read the diff before you say yes.
 - Coming next: an audit command that re-checks every old receipt in a repository.
-- Design notes: `spec/gate.md` and `spec/threat-model.md` (T7).
+- Full rules: `spec/repo-receipts.md`. Design notes: `spec/gate.md` and `spec/threat-model.md` (T7).
 
 ## API reference
 
