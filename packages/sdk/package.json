@@ -1,6 +1,6 @@
 {
   "name": "@at1c/sdk",
-  "version": "3.1.0",
+  "version": "3.1.1",
   "description": "AI asks first: signed human approval for AI agent actions",
   "keywords": [
     "ai-agents",

@@ -19,6 +19,8 @@ AT1C is a human-signed, single-use, scope-bound approval receipt that a gate ver
 
 The wire format is defined in `spec/receipt.md` (receipt format "2"). Where this README and the spec disagree, the spec wins.
 
+> **New in 3.1: receipts for code changes.** An AI agent's change only lands on your branch when you have signed for exactly those files. See "Repository receipts" below.
+
 > **3.0.0 is a breaking release (receipt format 2).** Receipts are now signed under their own label, every receipt has a salted fingerprint and travels with its attachment as one bundle, and every receipt names the one gate it is for. Format 1 receipts are refused. See "Upgrading from 2.x" below.
 
 License: MIT
@@ -201,6 +203,55 @@ import { LocalKeyApprover, Gate, FileNonceStore, approveAndRun } from '@at1c/sdk
 
 `LocalKeyApprover` signs receipts; `Gate` verifies and runs. The Approver interface (`approve(request) -> bundle`) is what level 2 and level 3 implement elsewhere.
 
+## Repository receipts: no human-signed receipt, no merge
+
+AI agents now write code. With repository receipts, an agent's change only lands on your branch when you have signed for exactly those files. Change one byte after you approve, and the merge is refused. It works with any git host, because it is plain git underneath.
+
+**How it works**
+
+1. The agent does its work on its own branch.
+2. AT1C reads the finished files straight from git and asks you to approve them. You see every file by name (new, changed, removed, executable or shortcut), the branch, and the commit it starts from.
+3. Your signed receipt is saved as one new file, `.at1c/receipts/<receipt_id>.json`, and committed on top of the agent's work. The record travels with the code, kept by you, not by any service.
+4. The merge gate rebuilds the file list from git itself, checks your receipt, and only then slides the branch forward. Fast-forward only: what lands is byte for byte what you approved.
+
+**Agent side: ask for approval**
+
+```ts
+import { repoPayloadFor, repoApprovalRequest, receiptPathFor } from '@at1c/sdk'
+
+const payload = repoPayloadFor(repoDir, 'origin/main', 'HEAD') // the finished files, as git stores them
+const bundle = await approver.approve(repoApprovalRequest({
+  audience: 'git.example.com', // the merge gate's name
+  repo: 'my-project',
+  branch: 'main',
+  agent_id: 'agent_coder',
+  agent_public_key: agentPublicKey,
+  payload,
+}))
+// Write the bundle to receiptPathFor(bundle.receipt.receipt_id), commit it on top, push the branch.
+```
+
+**Gate side: merge only with a receipt**
+
+```ts
+import { mergeWithReceipt } from '@at1c/sdk'
+
+const out = await mergeWithReceipt(
+  { repoDir: '/srv/git/my-project.git', repo: 'my-project', gate }, // the host's bare copy; `gate` is a format 2 Gate
+  { branch: 'main', source: 'agent-branch', agent_id: 'agent_coder' },
+)
+// { status: 'merged', receipt_id, from, to }  or  { status: 'refused', code, detail }
+```
+
+The gate refuses, and never moves the branch, when there is no receipt (`NO_RECEIPT`), more than one (`MORE_THAN_ONE_RECEIPT`), an old receipt was edited or removed (`RECEIPT_CHANGED`), the files differ from what you approved (`PAYLOAD_MISMATCH`), the branch has moved on (`NOT_FAST_FORWARD`, `BRANCH_MOVED`), or the change is over 100 files (`TOO_MANY_FILES`: split it, so you are never asked to approve blind). Every format 2 check also applies: signature, gate name, agent, expiry, revocation and single use.
+
+**Good to know**
+
+- The gate only *enforces* if the agent has no other way to push to the branch. Run it on the host's own bare copy, as a user the agent is not (`spec/gate.md` sections 3 and 7).
+- You approve file names and a fingerprint of their contents. Read the diff before you say yes.
+- Coming next: an audit command that re-checks every old receipt in a repository.
+- Design notes: `spec/gate.md` and `spec/threat-model.md` (T7).
+
 ## API reference
 
 | | |
@@ -215,6 +266,11 @@ import { LocalKeyApprover, Gate, FileNonceStore, approveAndRun } from '@at1c/sdk
 | `attachmentHashOf(attachment)`, `jcs(value)` | Fingerprint and canonicalisation helpers. |
 | `RECEIPT_CONTEXT` | The signing label for receipts, `AT1C/receipt/v2`. |
 | `verifyAgentCertificateV1(cert, ctx)` | Agent certificate verifier (`spec/agent-certificate.md`). |
+| `repoPayloadFor(repoDir, base, result)` | The finished-files payload for merging `result` onto `base`, read from git. |
+| `repoApprovalRequest(options)` | The approval request for a merge (`audience`, `repo`, `branch`, `agent_id`, `agent_public_key`, `payload`). |
+| `receiptPathFor(receipt_id)` | Where the bundle goes in the change: `.at1c/receipts/<receipt_id>.json`. |
+| `mergeWithReceipt(options, request)` | The merge gate. `options`: `repoDir` (bare copy), `repo`, `gate`. `request`: `branch`, `source`, `agent_id`. |
+| `renderRepoFiles(payload)` | The readable file list shown to the human. Limits: `MAX_REPO_FILES` (100), `MAX_REPO_LIST_CHARS` (20,000). |
 
 ## Examples
 
