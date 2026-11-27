@@ -7,8 +7,6 @@ Start here. Most important documents listed first.
 ## 📄 Whitepaper (v1.7 — current)
 **[▶ Read online: whitepaper.md](whitepaper.md)** — Renders directly in your browser. Start here.
 
-**[⬇ Download: AT1C_Protocol_Whitepaper_v1.6.docx](AT1C_Protocol_Whitepaper_v1.6.docx)** — Previous version (v1.6), Word document. A v1.7 Word file is not in this repository yet; read the current version online above.
-
 ---
 
 ## 📜 Manifesto
@@ -17,7 +15,7 @@ Start here. Most important documents listed first.
 ---
 
 ## 🔧 Protocol Specification
-**[protocol.md](protocol.md)** — Full technical specification v1.6: entities, receipt structure, verification rules, cryptographic guarantees, EU AI Act mapping, SDK reference, roadmap.
+**[protocol.md](protocol.md)** — Full technical specification: entities, receipt structure, verification rules, cryptographic guarantees, EU AI Act mapping, SDK reference, roadmap.
 
 ---
 
